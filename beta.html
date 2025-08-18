@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>panthertalk beta v2.0</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #c0c0c0;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border: 2px inset #c0c0c0;
+            padding: 10px;
+        }
+        
+        .login-form, .chat-interface {
+            margin-bottom: 20px;
+        }
+        
+        .chat-messages {
+            height: 300px;
+            border: 2px inset #c0c0c0;
+            background-color: white;
+            padding: 10px;
+            overflow-y: scroll;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .message {
+            margin-bottom: 5px;
+        }
+        
+        .timestamp {
+            color: #666;
+            font-size: 10px;
+        }
+        
+        .username {
+            font-weight: bold;
+            color: #000080;
+        }
+        
+        input[type="text"], input[type="password"] {
+            border: 2px inset #c0c0c0;
+            padding: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 5px;
+        }
+        
+        button {
+            background-color: #c0c0c0;
+            border: 2px outset #c0c0c0;
+            padding: 5px 15px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:active {
+            border: 2px inset #c0c0c0;
+        }
+        
+        .online-users {
+            border: 2px inset #c0c0c0;
+            background-color: white;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            min-height: 50px;
+        }
+        
+        .user-item {
+            cursor: pointer;
+            padding: 2px 5px;
+            margin: 2px 0;
+            border: 1px solid transparent;
+        }
+        
+        .user-item:hover {
+            background-color: #000080;
+            color: white;
+        }
+        
+        .dm-tabs {
+            border-bottom: 2px inset #c0c0c0;
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+        
+        .dm-tab {
+            background-color: #c0c0c0;
+            border: 2px outset #c0c0c0;
+            padding: 3px 10px;
+            margin-right: 5px;
+            cursor: pointer;
+            display: inline-block;
+            font-size: 11px;
+        }
+        
+        .dm-tab.active {
+            border: 2px inset #c0c0c0;
+            background-color: white;
+        }
+        
+        .dm-tab:hover:not(.active) {
+            background-color: #d0d0d0;
+        }
+        
+        .status {
+            color: #008000;
+            font-size: 11px;
+            margin-bottom: 10px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>panthertalk beta v2.0</h2>
+        
+        <div id="loginForm" class="login-form">
+            <div>username: <input type="text" id="usernameInput" placeholder="enter username"></div>
+            <div>password: <input type="password" id="passwordInput" placeholder="enter password"></div>
+            <button onclick="login()">login/register</button>
+            <div id="loginStatus"></div>
+        </div>
+        
+        <div id="chatInterface" class="chat-interface hidden">
+            <div class="status" id="userStatus"></div>
+            
+            <div class="online-users">
+                <strong>online users (click to dm):</strong>
+                <div id="onlineUsersList"></div>
+            </div>
+            
+            <div class="dm-tabs" id="dmTabs">
+                <div class="dm-tab active" onclick="switchToTab('main')">beta chat</div>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages"></div>
+            
+            <div>
+                <input type="text" id="messageInput" placeholder="type your message..." style="width: 60%;">
+                <input type="color" id="colorPicker" value="#000080" onchange="updateUserColor()" title="pick your username color">
+                <button onclick="sendMessage()">send</button>
+                <button onclick="logout()">logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let lastMessageId = 0;
+        let currentTab = 'main';
+        let dmTabs = ['main'];
+        
+        // initialize app
+        window.onload = function() {
+            loadMessages();
+            updateOnlineUsers();
+            updateDMTabs();
+            setInterval(pollForUpdates, 1000);
+        };
+        
+        function getStoredData(key) {
+            try {
+                return JSON.parse(localStorage.getItem(key) || '{}');
+            } catch {
+                return {};
+            }
+        }
+        
+        function setStoredData(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+        
+        function login() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+            const loginStatus = document.getElementById('loginStatus');
+            
+            if (!username || !password) {
+                loginStatus.innerHTML = '<span style="color: red;">please enter both username and password</span>';
+                return;
+            }
+            
+            const users = getStoredData('chatUsers');
+            const onlineUsers = getStoredData('onlineUsers');
+            const userColors = getStoredData('userColors');
+            
+            // normalize username - find existing case-insensitive match
+            const usernameLower = username.toLowerCase();
+            let actualUsername = username;
+            
+            // find if username already exists with different case
+            for (const existingUser in users) {
+                if (existingUser.toLowerCase() === usernameLower) {
+                    actualUsername = existingUser;
+                    break;
+                }
+            }
+            
+            // check if user exists
+            if (users[actualUsername]) {
+                if (users[actualUsername] !== password) {
+                    loginStatus.innerHTML = '<span style="color: red;">incorrect password</span>';
+                    return;
+                }
+                if (onlineUsers[actualUsername]) {
+                    loginStatus.innerHTML = '<span style="color: red;">user already logged in</span>';
+                    return;
+                }
+            } else {
+                // register new user - use the case they typed
+                users[actualUsername] = password;
+                setStoredData('chatUsers', users);
+            }
+            
+            // login successful
+            currentUser = actualUsername;
+            onlineUsers[actualUsername] = Date.now();
+            setStoredData('onlineUsers', onlineUsers);
+            
+            // set user's color picker to their saved color
+            const savedColor = userColors[actualUsername] || '#000080';
+            document.getElementById('colorPicker').value = savedColor;
+            
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('chatInterface').classList.remove('hidden');
+            document.getElementById('userStatus').textContent = `logged in as: ${actualUsername}`;
+            
+            loadMessages();
+            updateOnlineUsers();
+            
+            // focus message input
+            document.getElementById('messageInput').focus();
+        }
+        
+        function logout() {
+            if (currentUser) {
+                const onlineUsers = getStoredData('onlineUsers');
+                delete onlineUsers[currentUser];
+                setStoredData('onlineUsers', onlineUsers);
+                currentUser = null;
+            }
+            
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('chatInterface').classList.add('hidden');
+            document.getElementById('usernameInput').value = '';
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('loginStatus').innerHTML = '';
+        }
+        
+        function sendMessage() {
+            if (!currentUser) return;
+            
+            const messageInput = document.getElementById('messageInput');
+            const messageText = messageInput.value.trim();
+            
+            if (!messageText) return;
+            
+            const messageId = Date.now() + Math.random();
+            const message = {
+                id: messageId,
+                username: currentUser,
+                text: messageText,
+                timestamp: new Date().toISOString(),
+                channel: currentTab
+            };
+            
+            if (currentTab === 'main') {
+                const messages = getStoredData('chatMessages');
+                messages[messageId] = message;
+                setStoredData('chatMessages', messages);
+            } else {
+                const dmMessages = getStoredData('dmMessages');
+                if (!dmMessages[currentTab]) dmMessages[currentTab] = {};
+                dmMessages[currentTab][messageId] = message;
+                setStoredData('dmMessages', dmMessages);
+            }
+            
+            messageInput.value = '';
+            loadMessages();
+        }
+        
+        function loadMessages() {
+            const userColors = getStoredData('userColors');
+            const chatMessages = document.getElementById('chatMessages');
+            
+            let messages;
+            if (currentTab === 'main') {
+                messages = getStoredData('chatMessages');
+            } else {
+                const dmMessages = getStoredData('dmMessages');
+                messages = dmMessages[currentTab] || {};
+            }
+            
+            // convert to array and sort by timestamp
+            const messageArray = Object.values(messages).sort((a, b) => 
+                new Date(a.timestamp) - new Date(b.timestamp)
+            );
+            
+            // only show last 100 messages
+            const recentMessages = messageArray.slice(-100);
+            
+            chatMessages.innerHTML = '';
+            recentMessages.forEach(message => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+                
+                const messageDate = new Date(message.timestamp);
+                const date = messageDate.toLocaleDateString();
+                const time = messageDate.toLocaleTimeString();
+                const userColor = userColors[message.username] || '#000080';
+                
+                messageDiv.innerHTML = `
+                    <span class="timestamp">[${date} ${time}]</span> 
+                    <span class="username" style="color: ${userColor};">${message.username}:</span> 
+                    ${escapeHtml(message.text)}
+                `;
+                
+                chatMessages.appendChild(messageDiv);
+            });
+            
+            // scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function updateOnlineUsers() {
+            const onlineUsers = getStoredData('onlineUsers');
+            const onlineUsersList = document.getElementById('onlineUsersList');
+            
+            // remove users inactive for more than 30 seconds
+            const now = Date.now();
+            for (const username in onlineUsers) {
+                if (now - onlineUsers[username] > 30000) {
+                    delete onlineUsers[username];
+                }
+            }
+            setStoredData('onlineUsers', onlineUsers);
+            
+            // update current user's timestamp if logged in
+            if (currentUser && onlineUsers[currentUser]) {
+                onlineUsers[currentUser] = now;
+                setStoredData('onlineUsers', onlineUsers);
+            }
+            
+            const usernames = Object.keys(onlineUsers).filter(u => u !== currentUser);
+            
+            if (usernames.length > 0) {
+                onlineUsersList.innerHTML = usernames.map(username => 
+                    `<div class="user-item" onclick="startDM('${username}')">${username}</div>`
+                ).join('');
+            } else {
+                onlineUsersList.textContent = 'none';
+            }
+        }
+        
+        function pollForUpdates() {
+            if (currentUser) {
+                loadMessages();
+                updateOnlineUsers();
+                updateDMTabs();
+            }
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function updateUserColor() {
+            if (!currentUser) return;
+            
+            const colorPicker = document.getElementById('colorPicker');
+            const userColors = getStoredData('userColors');
+            
+            userColors[currentUser] = colorPicker.value;
+            setStoredData('userColors', userColors);
+            
+            // refresh messages to show new color
+            loadMessages();
+        }
+        
+        function startDM(otherUser) {
+            const dmKey = createDMKey(currentUser, otherUser);
+            
+            if (!dmTabs.includes(dmKey)) {
+                dmTabs.push(dmKey);
+                updateDMTabs();
+            }
+            
+            switchToTab(dmKey);
+        }
+        
+        function createDMKey(user1, user2) {
+            return [user1, user2].sort().join('-');
+        }
+        
+        function switchToTab(tabName) {
+            currentTab = tabName;
+            
+            // update tab appearance
+            document.querySelectorAll('.dm-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            const activeTab = document.querySelector(`[onclick="switchToTab('${tabName}')"]`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+            }
+            
+            // update message input placeholder
+            const messageInput = document.getElementById('messageInput');
+            if (tabName === 'main') {
+                messageInput.placeholder = 'type your message...';
+            } else {
+                const otherUser = tabName.split('-').find(u => u !== currentUser);
+                messageInput.placeholder = `dm to ${otherUser}...`;
+            }
+            
+            loadMessages();
+        }
+        
+        function updateDMTabs() {
+            const dmTabsContainer = document.getElementById('dmTabs');
+            
+            dmTabsContainer.innerHTML = dmTabs.map(tab => {
+                if (tab === 'main') {
+                    return `<div class="dm-tab ${currentTab === 'main' ? 'active' : ''}" onclick="switchToTab('main')">main chat</div>`;
+                } else {
+                    const otherUser = tab.split('-').find(u => u !== currentUser);
+                    return `<div class="dm-tab ${currentTab === tab ? 'active' : ''}" onclick="switchToTab('${tab}')">dm: ${otherUser}</div>`;
+                }
+            }).join('');
+        }
+        
+        // handle enter key in inputs
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                if (e.target.id === 'messageInput') {
+                    sendMessage();
+                } else if (e.target.id === 'passwordInput' || e.target.id === 'usernameInput') {
+                    login();
+                }
+            }
+        });
+        
+        // clean up on page unload
+        window.addEventListener('beforeunload', function() {
+            if (currentUser) {
+                const onlineUsers = getStoredData('onlineUsers');
+                delete onlineUsers[currentUser];
+                setStoredData('onlineUsers', onlineUsers);
+            }
+        });
+    </script>
+</body>
+</html>
