@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>panthertalk v1.5</title>
+    <title>panthertalk v2.0</title>
     <style>
         body {
             font-family: 'Courier New', monospace;
@@ -77,6 +77,43 @@
             min-height: 50px;
         }
         
+        .user-item {
+            cursor: pointer;
+            padding: 2px 5px;
+            margin: 2px 0;
+            border: 1px solid transparent;
+        }
+        
+        .user-item:hover {
+            background-color: #000080;
+            color: white;
+        }
+        
+        .dm-tabs {
+            border-bottom: 2px inset #c0c0c0;
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+        
+        .dm-tab {
+            background-color: #c0c0c0;
+            border: 2px outset #c0c0c0;
+            padding: 3px 10px;
+            margin-right: 5px;
+            cursor: pointer;
+            display: inline-block;
+            font-size: 11px;
+        }
+        
+        .dm-tab.active {
+            border: 2px inset #c0c0c0;
+            background-color: white;
+        }
+        
+        .dm-tab:hover:not(.active) {
+            background-color: #d0d0d0;
+        }
+        
         .status {
             color: #008000;
             font-size: 11px;
@@ -90,7 +127,8 @@
 </head>
 <body>
     <div class="container">
-        <h2>panthertalk v1.5</h2>
+        <h2>panthertalk v2.0</h2>
+        <h3>2025 - coen buck</h3>
         
         <div id="loginForm" class="login-form">
             <div>username: <input type="text" id="usernameInput" placeholder="enter username"></div>
@@ -103,8 +141,12 @@
             <div class="status" id="userStatus"></div>
             
             <div class="online-users">
-                <strong>online users:</strong>
+                <strong>online users (click to dm):</strong>
                 <div id="onlineUsersList"></div>
+            </div>
+            
+            <div class="dm-tabs" id="dmTabs">
+                <div class="dm-tab active" onclick="switchToTab('main')">main chat</div>
             </div>
             
             <div class="chat-messages" id="chatMessages"></div>
@@ -121,11 +163,14 @@
     <script>
         let currentUser = null;
         let lastMessageId = 0;
+        let currentTab = 'main';
+        let dmTabs = ['main'];
         
         // initialize app
         window.onload = function() {
             loadMessages();
             updateOnlineUsers();
+            updateDMTabs();
             setInterval(pollForUpdates, 1000);
         };
         
@@ -226,25 +271,41 @@
             
             if (!messageText) return;
             
-            const messages = getStoredData('chatMessages');
             const messageId = Date.now() + Math.random();
-            
-            messages[messageId] = {
+            const message = {
                 id: messageId,
                 username: currentUser,
                 text: messageText,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                channel: currentTab
             };
             
-            setStoredData('chatMessages', messages);
+            if (currentTab === 'main') {
+                const messages = getStoredData('chatMessages');
+                messages[messageId] = message;
+                setStoredData('chatMessages', messages);
+            } else {
+                const dmMessages = getStoredData('dmMessages');
+                if (!dmMessages[currentTab]) dmMessages[currentTab] = {};
+                dmMessages[currentTab][messageId] = message;
+                setStoredData('dmMessages', dmMessages);
+            }
+            
             messageInput.value = '';
             loadMessages();
         }
         
         function loadMessages() {
-            const messages = getStoredData('chatMessages');
             const userColors = getStoredData('userColors');
             const chatMessages = document.getElementById('chatMessages');
+            
+            let messages;
+            if (currentTab === 'main') {
+                messages = getStoredData('chatMessages');
+            } else {
+                const dmMessages = getStoredData('dmMessages');
+                messages = dmMessages[currentTab] || {};
+            }
             
             // convert to array and sort by timestamp
             const messageArray = Object.values(messages).sort((a, b) => 
@@ -296,14 +357,22 @@
                 setStoredData('onlineUsers', onlineUsers);
             }
             
-            const usernames = Object.keys(onlineUsers);
-            onlineUsersList.textContent = usernames.length > 0 ? usernames.join(', ') : 'none';
+            const usernames = Object.keys(onlineUsers).filter(u => u !== currentUser);
+            
+            if (usernames.length > 0) {
+                onlineUsersList.innerHTML = usernames.map(username => 
+                    `<div class="user-item" onclick="startDM('${username}')">${username}</div>`
+                ).join('');
+            } else {
+                onlineUsersList.textContent = 'none';
+            }
         }
         
         function pollForUpdates() {
             if (currentUser) {
                 loadMessages();
                 updateOnlineUsers();
+                updateDMTabs();
             }
         }
         
@@ -324,6 +393,59 @@
             
             // refresh messages to show new color
             loadMessages();
+        }
+        
+        function startDM(otherUser) {
+            const dmKey = createDMKey(currentUser, otherUser);
+            
+            if (!dmTabs.includes(dmKey)) {
+                dmTabs.push(dmKey);
+                updateDMTabs();
+            }
+            
+            switchToTab(dmKey);
+        }
+        
+        function createDMKey(user1, user2) {
+            return [user1, user2].sort().join('-');
+        }
+        
+        function switchToTab(tabName) {
+            currentTab = tabName;
+            
+            // update tab appearance
+            document.querySelectorAll('.dm-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            const activeTab = document.querySelector(`[onclick="switchToTab('${tabName}')"]`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+            }
+            
+            // update message input placeholder
+            const messageInput = document.getElementById('messageInput');
+            if (tabName === 'main') {
+                messageInput.placeholder = 'type your message...';
+            } else {
+                const otherUser = tabName.split('-').find(u => u !== currentUser);
+                messageInput.placeholder = `dm to ${otherUser}...`;
+            }
+            
+            loadMessages();
+        }
+        
+        function updateDMTabs() {
+            const dmTabsContainer = document.getElementById('dmTabs');
+            
+            dmTabsContainer.innerHTML = dmTabs.map(tab => {
+                if (tab === 'main') {
+                    return `<div class="dm-tab ${currentTab === 'main' ? 'active' : ''}" onclick="switchToTab('main')">main chat</div>`;
+                } else {
+                    const otherUser = tab.split('-').find(u => u !== currentUser);
+                    return `<div class="dm-tab ${currentTab === tab ? 'active' : ''}" onclick="switchToTab('${tab}')">dm: ${otherUser}</div>`;
+                }
+            }).join('');
         }
         
         // handle enter key in inputs
