@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>simple chat</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #c0c0c0;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border: 2px inset #c0c0c0;
+            padding: 10px;
+        }
+        
+        .login-form, .chat-interface {
+            margin-bottom: 20px;
+        }
+        
+        .chat-messages {
+            height: 300px;
+            border: 2px inset #c0c0c0;
+            background-color: white;
+            padding: 10px;
+            overflow-y: scroll;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .message {
+            margin-bottom: 5px;
+        }
+        
+        .timestamp {
+            color: #666;
+            font-size: 10px;
+        }
+        
+        .username {
+            font-weight: bold;
+            color: #000080;
+        }
+        
+        input[type="text"], input[type="password"] {
+            border: 2px inset #c0c0c0;
+            padding: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 5px;
+        }
+        
+        button {
+            background-color: #c0c0c0;
+            border: 2px outset #c0c0c0;
+            padding: 5px 15px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:active {
+            border: 2px inset #c0c0c0;
+        }
+        
+        .online-users {
+            border: 2px inset #c0c0c0;
+            background-color: white;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            min-height: 50px;
+        }
+        
+        .status {
+            color: #008000;
+            font-size: 11px;
+            margin-bottom: 10px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>simple chat v1.0</h2>
+        
+        <div id="loginForm" class="login-form">
+            <div>username: <input type="text" id="usernameInput" placeholder="enter username"></div>
+            <div>password: <input type="password" id="passwordInput" placeholder="enter password"></div>
+            <button onclick="login()">login/register</button>
+            <div id="loginStatus"></div>
+        </div>
+        
+        <div id="chatInterface" class="chat-interface hidden">
+            <div class="status" id="userStatus"></div>
+            
+            <div class="online-users">
+                <strong>online users:</strong>
+                <div id="onlineUsersList"></div>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages"></div>
+            
+            <div>
+                <input type="text" id="messageInput" placeholder="type your message..." style="width: 70%;">
+                <button onclick="sendMessage()">send</button>
+                <button onclick="logout()">logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let lastMessageId = 0;
+        
+        // initialize app
+        window.onload = function() {
+            loadMessages();
+            updateOnlineUsers();
+            setInterval(pollForUpdates, 1000);
+        };
+        
+        function getStoredData(key) {
+            try {
+                return JSON.parse(localStorage.getItem(key) || '{}');
+            } catch {
+                return {};
+            }
+        }
+        
+        function setStoredData(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+        
+        function login() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+            const loginStatus = document.getElementById('loginStatus');
+            
+            if (!username || !password) {
+                loginStatus.innerHTML = '<span style="color: red;">please enter both username and password</span>';
+                return;
+            }
+            
+            const users = getStoredData('chatUsers');
+            const onlineUsers = getStoredData('onlineUsers');
+            
+            // check if user exists
+            if (users[username]) {
+                if (users[username] !== password) {
+                    loginStatus.innerHTML = '<span style="color: red;">incorrect password</span>';
+                    return;
+                }
+                if (onlineUsers[username]) {
+                    loginStatus.innerHTML = '<span style="color: red;">user already logged in</span>';
+                    return;
+                }
+            } else {
+                // register new user
+                users[username] = password;
+                setStoredData('chatUsers', users);
+            }
+            
+            // login successful
+            currentUser = username;
+            onlineUsers[username] = Date.now();
+            setStoredData('onlineUsers', onlineUsers);
+            
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('chatInterface').classList.remove('hidden');
+            document.getElementById('userStatus').textContent = `logged in as: ${username}`;
+            
+            loadMessages();
+            updateOnlineUsers();
+            
+            // focus message input
+            document.getElementById('messageInput').focus();
+        }
+        
+        function logout() {
+            if (currentUser) {
+                const onlineUsers = getStoredData('onlineUsers');
+                delete onlineUsers[currentUser];
+                setStoredData('onlineUsers', onlineUsers);
+                currentUser = null;
+            }
+            
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('chatInterface').classList.add('hidden');
+            document.getElementById('usernameInput').value = '';
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('loginStatus').innerHTML = '';
+        }
+        
+        function sendMessage() {
+            if (!currentUser) return;
+            
+            const messageInput = document.getElementById('messageInput');
+            const messageText = messageInput.value.trim();
+            
+            if (!messageText) return;
+            
+            const messages = getStoredData('chatMessages');
+            const messageId = Date.now() + Math.random();
+            
+            messages[messageId] = {
+                id: messageId,
+                username: currentUser,
+                text: messageText,
+                timestamp: new Date().toISOString()
+            };
+            
+            setStoredData('chatMessages', messages);
+            messageInput.value = '';
+            loadMessages();
+        }
+        
+        function loadMessages() {
+            const messages = getStoredData('chatMessages');
+            const chatMessages = document.getElementById('chatMessages');
+            
+            // convert to array and sort by timestamp
+            const messageArray = Object.values(messages).sort((a, b) => 
+                new Date(a.timestamp) - new Date(b.timestamp)
+            );
+            
+            // only show last 100 messages
+            const recentMessages = messageArray.slice(-100);
+            
+            chatMessages.innerHTML = '';
+            recentMessages.forEach(message => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+                
+                const timestamp = new Date(message.timestamp).toLocaleTimeString();
+                messageDiv.innerHTML = `
+                    <span class="timestamp">[${timestamp}]</span> 
+                    <span class="username">${message.username}:</span> 
+                    ${escapeHtml(message.text)}
+                `;
+                
+                chatMessages.appendChild(messageDiv);
+            });
+            
+            // scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function updateOnlineUsers() {
+            const onlineUsers = getStoredData('onlineUsers');
+            const onlineUsersList = document.getElementById('onlineUsersList');
+            
+            // remove users inactive for more than 30 seconds
+            const now = Date.now();
+            for (const username in onlineUsers) {
+                if (now - onlineUsers[username] > 30000) {
+                    delete onlineUsers[username];
+                }
+            }
+            setStoredData('onlineUsers', onlineUsers);
+            
+            // update current user's timestamp if logged in
+            if (currentUser && onlineUsers[currentUser]) {
+                onlineUsers[currentUser] = now;
+                setStoredData('onlineUsers', onlineUsers);
+            }
+            
+            const usernames = Object.keys(onlineUsers);
+            onlineUsersList.textContent = usernames.length > 0 ? usernames.join(', ') : 'none';
+        }
+        
+        function pollForUpdates() {
+            if (currentUser) {
+                loadMessages();
+                updateOnlineUsers();
+            }
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // handle enter key in inputs
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                if (e.target.id === 'messageInput') {
+                    sendMessage();
+                } else if (e.target.id === 'passwordInput' || e.target.id === 'usernameInput') {
+                    login();
+                }
+            }
+        });
+        
+        // clean up on page unload
+        window.addEventListener('beforeunload', function() {
+            if (currentUser) {
+                const onlineUsers = getStoredData('onlineUsers');
+                delete onlineUsers[currentUser];
+                setStoredData('onlineUsers', onlineUsers);
+            }
+        });
+    </script>
+</body>
+</html>
