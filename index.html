@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>simple chat</title>
+    <title>panthertalk v1.5</title>
     <style>
         body {
             font-family: 'Courier New', monospace;
@@ -90,7 +90,7 @@
 </head>
 <body>
     <div class="container">
-        <h2>simple chat v1.0</h2>
+        <h2>panthertalk v1.5</h2>
         
         <div id="loginForm" class="login-form">
             <div>username: <input type="text" id="usernameInput" placeholder="enter username"></div>
@@ -110,7 +110,8 @@
             <div class="chat-messages" id="chatMessages"></div>
             
             <div>
-                <input type="text" id="messageInput" placeholder="type your message..." style="width: 70%;">
+                <input type="text" id="messageInput" placeholder="type your message..." style="width: 60%;">
+                <input type="color" id="colorPicker" value="#000080" onchange="updateUserColor()" title="pick your username color">
                 <button onclick="sendMessage()">send</button>
                 <button onclick="logout()">logout</button>
             </div>
@@ -152,31 +153,48 @@
             
             const users = getStoredData('chatUsers');
             const onlineUsers = getStoredData('onlineUsers');
+            const userColors = getStoredData('userColors');
+            
+            // normalize username - find existing case-insensitive match
+            const usernameLower = username.toLowerCase();
+            let actualUsername = username;
+            
+            // find if username already exists with different case
+            for (const existingUser in users) {
+                if (existingUser.toLowerCase() === usernameLower) {
+                    actualUsername = existingUser;
+                    break;
+                }
+            }
             
             // check if user exists
-            if (users[username]) {
-                if (users[username] !== password) {
+            if (users[actualUsername]) {
+                if (users[actualUsername] !== password) {
                     loginStatus.innerHTML = '<span style="color: red;">incorrect password</span>';
                     return;
                 }
-                if (onlineUsers[username]) {
+                if (onlineUsers[actualUsername]) {
                     loginStatus.innerHTML = '<span style="color: red;">user already logged in</span>';
                     return;
                 }
             } else {
-                // register new user
-                users[username] = password;
+                // register new user - use the case they typed
+                users[actualUsername] = password;
                 setStoredData('chatUsers', users);
             }
             
             // login successful
-            currentUser = username;
-            onlineUsers[username] = Date.now();
+            currentUser = actualUsername;
+            onlineUsers[actualUsername] = Date.now();
             setStoredData('onlineUsers', onlineUsers);
+            
+            // set user's color picker to their saved color
+            const savedColor = userColors[actualUsername] || '#000080';
+            document.getElementById('colorPicker').value = savedColor;
             
             document.getElementById('loginForm').classList.add('hidden');
             document.getElementById('chatInterface').classList.remove('hidden');
-            document.getElementById('userStatus').textContent = `logged in as: ${username}`;
+            document.getElementById('userStatus').textContent = `logged in as: ${actualUsername}`;
             
             loadMessages();
             updateOnlineUsers();
@@ -225,6 +243,7 @@
         
         function loadMessages() {
             const messages = getStoredData('chatMessages');
+            const userColors = getStoredData('userColors');
             const chatMessages = document.getElementById('chatMessages');
             
             // convert to array and sort by timestamp
@@ -240,10 +259,14 @@
                 const messageDiv = document.createElement('div');
                 messageDiv.className = 'message';
                 
-                const timestamp = new Date(message.timestamp).toLocaleTimeString();
+                const messageDate = new Date(message.timestamp);
+                const date = messageDate.toLocaleDateString();
+                const time = messageDate.toLocaleTimeString();
+                const userColor = userColors[message.username] || '#000080';
+                
                 messageDiv.innerHTML = `
-                    <span class="timestamp">[${timestamp}]</span> 
-                    <span class="username">${message.username}:</span> 
+                    <span class="timestamp">[${date} ${time}]</span> 
+                    <span class="username" style="color: ${userColor};">${message.username}:</span> 
                     ${escapeHtml(message.text)}
                 `;
                 
@@ -288,6 +311,19 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+        
+        function updateUserColor() {
+            if (!currentUser) return;
+            
+            const colorPicker = document.getElementById('colorPicker');
+            const userColors = getStoredData('userColors');
+            
+            userColors[currentUser] = colorPicker.value;
+            setStoredData('userColors', userColors);
+            
+            // refresh messages to show new color
+            loadMessages();
         }
         
         // handle enter key in inputs
