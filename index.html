@@ -173,19 +173,33 @@
             setInterval(pollForUpdates, 1000);
         };
         
-        function getStoredData(key) {
+        // CHANGED: use server instead of localStorage
+        async function getStoredData(key) {
             try {
-                return JSON.parse(localStorage.getItem(key) || '{}');
-            } catch {
+                const response = await fetch(`/api/data/${key}`);
+                return await response.json();
+            } catch (error) {
+                console.error('error getting data:', error);
                 return {};
             }
         }
         
-        function setStoredData(key, data) {
-            localStorage.setItem(key, JSON.stringify(data));
+        // CHANGED: use server instead of localStorage  
+        async function setStoredData(key, data) {
+            try {
+                await fetch(`/api/data/${key}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+            } catch (error) {
+                console.error('error saving data:', error);
+            }
         }
         
-        function login() {
+        async function login() {
             const username = document.getElementById('usernameInput').value.trim();
             const password = document.getElementById('passwordInput').value;
             const loginStatus = document.getElementById('loginStatus');
@@ -195,9 +209,9 @@
                 return;
             }
             
-            const users = getStoredData('chatUsers');
-            const onlineUsers = getStoredData('onlineUsers');
-            const userColors = getStoredData('userColors');
+            const users = await getStoredData('chatUsers');
+            const onlineUsers = await getStoredData('onlineUsers');
+            const userColors = await getStoredData('userColors');
             
             // normalize username - find existing case-insensitive match
             const usernameLower = username.toLowerCase();
@@ -224,13 +238,13 @@
             } else {
                 // register new user - use the case they typed
                 users[actualUsername] = password;
-                setStoredData('chatUsers', users);
+                await setStoredData('chatUsers', users);
             }
             
             // login successful
             currentUser = actualUsername;
             onlineUsers[actualUsername] = Date.now();
-            setStoredData('onlineUsers', onlineUsers);
+            await setStoredData('onlineUsers', onlineUsers);
             
             // set user's color picker to their saved color
             const savedColor = userColors[actualUsername] || '#000080';
@@ -247,11 +261,11 @@
             document.getElementById('messageInput').focus();
         }
         
-        function logout() {
+        async function logout() {
             if (currentUser) {
-                const onlineUsers = getStoredData('onlineUsers');
+                const onlineUsers = await getStoredData('onlineUsers');
                 delete onlineUsers[currentUser];
-                setStoredData('onlineUsers', onlineUsers);
+                await setStoredData('onlineUsers', onlineUsers);
                 currentUser = null;
             }
             
@@ -262,7 +276,7 @@
             document.getElementById('loginStatus').innerHTML = '';
         }
         
-        function sendMessage() {
+        async function sendMessage() {
             if (!currentUser) return;
             
             const messageInput = document.getElementById('messageInput');
@@ -280,29 +294,29 @@
             };
             
             if (currentTab === 'main') {
-                const messages = getStoredData('chatMessages');
+                const messages = await getStoredData('chatMessages');
                 messages[messageId] = message;
-                setStoredData('chatMessages', messages);
+                await setStoredData('chatMessages', messages);
             } else {
-                const dmMessages = getStoredData('dmMessages');
+                const dmMessages = await getStoredData('dmMessages');
                 if (!dmMessages[currentTab]) dmMessages[currentTab] = {};
                 dmMessages[currentTab][messageId] = message;
-                setStoredData('dmMessages', dmMessages);
+                await setStoredData('dmMessages', dmMessages);
             }
             
             messageInput.value = '';
             loadMessages();
         }
         
-        function loadMessages() {
-            const userColors = getStoredData('userColors');
+        async function loadMessages() {
+            const userColors = await getStoredData('userColors');
             const chatMessages = document.getElementById('chatMessages');
             
             let messages;
             if (currentTab === 'main') {
-                messages = getStoredData('chatMessages');
+                messages = await getStoredData('chatMessages');
             } else {
-                const dmMessages = getStoredData('dmMessages');
+                const dmMessages = await getStoredData('dmMessages');
                 messages = dmMessages[currentTab] || {};
             }
             
@@ -337,23 +351,27 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
         
-        function updateOnlineUsers() {
-            const onlineUsers = getStoredData('onlineUsers');
+        async function updateOnlineUsers() {
+            const onlineUsers = await getStoredData('onlineUsers');
             const onlineUsersList = document.getElementById('onlineUsersList');
             
             // remove users inactive for more than 30 seconds
             const now = Date.now();
+            let updated = false;
             for (const username in onlineUsers) {
                 if (now - onlineUsers[username] > 30000) {
                     delete onlineUsers[username];
+                    updated = true;
                 }
             }
-            setStoredData('onlineUsers', onlineUsers);
+            if (updated) {
+                await setStoredData('onlineUsers', onlineUsers);
+            }
             
             // update current user's timestamp if logged in
             if (currentUser && onlineUsers[currentUser]) {
                 onlineUsers[currentUser] = now;
-                setStoredData('onlineUsers', onlineUsers);
+                await setStoredData('onlineUsers', onlineUsers);
             }
             
             const usernames = Object.keys(onlineUsers).filter(u => u !== currentUser);
@@ -381,14 +399,14 @@
             return div.innerHTML;
         }
         
-        function updateUserColor() {
+        async function updateUserColor() {
             if (!currentUser) return;
             
             const colorPicker = document.getElementById('colorPicker');
-            const userColors = getStoredData('userColors');
+            const userColors = await getStoredData('userColors');
             
             userColors[currentUser] = colorPicker.value;
-            setStoredData('userColors', userColors);
+            await setStoredData('userColors', userColors);
             
             // refresh messages to show new color
             loadMessages();
@@ -459,11 +477,11 @@
         });
         
         // clean up on page unload
-        window.addEventListener('beforeunload', function() {
+        window.addEventListener('beforeunload', async function() {
             if (currentUser) {
-                const onlineUsers = getStoredData('onlineUsers');
+                const onlineUsers = await getStoredData('onlineUsers');
                 delete onlineUsers[currentUser];
-                setStoredData('onlineUsers', onlineUsers);
+                await setStoredData('onlineUsers', onlineUsers);
             }
         });
     </script>
