@@ -1,94 +1,91 @@
 const express = require('express');
 const cors = require('cors');
-const http = require('http');
-const { WebSocketServer } = require('ws');
-
 const app = express();
+
+// enable cors and json parsing
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.'));
+app.use(express.static('.')); // serve your html file
 
-// --- In-Memory Storage ---
-let storage = {
-    chatUsers: {},
-    onlineUsers: {},
-    chatMessages: {},
-    dmMessages: {},
-    userColors: {},
-    chatRooms: {},
-    roomMessages: {}
-};
+// in-memory storage (resets when server restarts)
+let chatUsers = {};
+let onlineUsers = {};
+let chatMessages = {};
+let dmMessages = {};
+let userColors = {};
+let chatRooms = {}; // <-- added this
+let roomMessages = {}; // <-- and this
 
-// --- HTTP Server Setup ---
-// We need to create an explicit HTTP server to share with the WebSocket server
-const server = http.createServer(app);
-
-// --- Standard REST API for saving/loading initial data ---
-app.get('/api/data/:key', (req, res) => {
-    const key = req.params.key;
-    res.json(storage[key] || {});
+// serve your html file at the root
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/beta.html'); // updated to serve beta.html
 });
 
+// get all data (replaces localStorage.getItem)
+app.get('/api/data/:key', (req, res) => {
+    const key = req.params.key;
+    
+    switch(key) {
+        case 'chatUsers':
+            res.json(chatUsers);
+            break;
+        case 'onlineUsers':
+            res.json(onlineUsers);
+            break;
+        case 'chatMessages':
+            res.json(chatMessages);
+            break;
+        case 'dmMessages':
+            res.json(dmMessages);
+            break;
+        case 'userColors':
+            res.json(userColors);
+            break;
+        case 'chatRooms': // <-- added this case
+            res.json(chatRooms);
+            break;
+        case 'roomMessages': // <-- and this one
+            res.json(roomMessages);
+            break;
+        default:
+            res.json({});
+    }
+});
+
+// save data (replaces localStorage.setItem)
 app.post('/api/data/:key', (req, res) => {
     const key = req.params.key;
-    storage[key] = req.body;
+    const data = req.body;
+    
+    switch(key) {
+        case 'chatUsers':
+            chatUsers = data;
+            break;
+        case 'onlineUsers':
+            onlineUsers = data;
+            break;
+        case 'chatMessages':
+            chatMessages = data;
+            break;
+        case 'dmMessages':
+            dmMessages = data;
+            break;
+        case 'userColors':
+            userColors = data;
+            break;
+        case 'chatRooms': // <-- added this case
+            chatRooms = data;
+            break;
+        case 'roomMessages': // <-- and this one
+            roomMessages = data;
+            break;
+    }
+    
     res.json({ success: true });
 });
 
-// Serve the main page
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
-});
-
-// --- WebSocket Server Setup ---
-const wss = new WebSocketServer({ server });
-
-wss.on('connection', ws => {
-    console.log('client connected');
-
-    ws.on('message', message => {
-        const data = JSON.parse(message);
-
-        // When we get a new message, broadcast it to all connected clients
-        if (data.type === 'chatMessage') {
-            // First, save the message to our in-memory storage
-            const { id, channel, content } = data.payload;
-            if (channel === 'main') {
-                storage.chatMessages[id] = content;
-            } else if (channel.startsWith('room-')) {
-                if (!storage.roomMessages[channel]) storage.roomMessages[channel] = {};
-                storage.roomMessages[channel][id] = content;
-            } else {
-                if (!storage.dmMessages[channel]) storage.dmMessages[channel] = {};
-                storage.dmMessages[channel][id] = content;
-            }
-
-            // Then, broadcast a "newMessage" event to all clients
-            broadcast({ type: 'newMessage', payload: { channel } });
-        }
-        
-        // Handle user list updates (login/logout)
-        if (data.type === 'userUpdate') {
-            broadcast({ type: 'updateUsers' });
-        }
-    });
-
-    ws.on('close', () => {
-        console.log('client disconnected');
-    });
-});
-
-// Helper function to send a message to all connected clients
-function broadcast(data) {
-    wss.clients.forEach(client => {
-        if (client.readyState === 1) { // 1 means OPEN
-            client.send(JSON.stringify(data));
-        }
-    });
-}
-
-// --- Start the Server ---
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+app.listen(PORT, () => {
     console.log(`chat server running on port ${PORT}`);
+    console.log(`open http://localhost:${PORT} to use your chat`);
 });
