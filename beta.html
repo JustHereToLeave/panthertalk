@@ -17,7 +17,7 @@
             background-color: #2d2d2d;
         }
         
-        body.turquoise-mode {
+        body.sage-mode {
             background-color: #4a5d5a;
         }
         
@@ -36,7 +36,7 @@
             color: #e0e0e0;
         }
         
-        body.turquoise-mode .container {
+        body.sage-mode .container {
             background-color: #5a6b68;
             border: 2px inset #6b7c79;
             color: #e0f0f0;
@@ -63,7 +63,7 @@
             color: #e0e0e0;
         }
         
-        body.turquoise-mode .chat-messages {
+        body.sage-mode .chat-messages {
             background-color: #4a5b58;
             border: 2px inset #6b7c79;
             color: #e0f0f0;
@@ -87,8 +87,8 @@
             color: #4da6ff;
         }
         
-        body.turquoise-mode .username {
-            color: #40e0d0;
+        body.sage-mode .username {
+            color: #279287;
         }
         
         input[type="text"], input[type="password"] {
@@ -108,8 +108,8 @@
             border: 2px inset #555;
         }
         
-        body.turquoise-mode input[type="text"], 
-        body.turquoise-mode input[type="password"] {
+        body.sage-mode input[type="text"], 
+        body.sage-mode input[type="password"] {
             background-color: #4a5b58;
             color: #e0f0f0;
             border: 2px inset #6b7c79;
@@ -132,7 +132,7 @@
             color: #e0e0e0;
         }
         
-        body.turquoise-mode button {
+        body.sage-mode button {
             background-color: #6b7c79;
             border: 2px outset #6b7c79;
             color: #e0f0f0;
@@ -146,7 +146,7 @@
             border: 2px inset #555;
         }
         
-        body.turquoise-mode button:active {
+        body.sage-mode button:active {
             border: 2px inset #6b7c79;
         }
         
@@ -166,7 +166,7 @@
             color: #e0e0e0;
         }
         
-        body.turquoise-mode .online-users {
+        body.sage-mode .online-users {
             background-color: #4a5b58;
             border: 2px inset #6b7c79;
             color: #e0f0f0;
@@ -189,8 +189,8 @@
             color: #2d2d2d;
         }
         
-        body.turquoise-mode .user-item:hover {
-            background-color: #40e0d0;
+        body.sage-mode .user-item:hover {
+            background-color: #279287;
             color: #4a5d5a;
         }
         
@@ -205,7 +205,7 @@
             border-bottom: 2px inset #555;
         }
         
-        body.turquoise-mode .dm-tabs {
+        body.sage-mode .dm-tabs {
             border-bottom: 2px inset #6b7c79;
         }
         
@@ -227,7 +227,7 @@
             color: #e0e0e0;
         }
         
-        body.turquoise-mode .dm-tab {
+        body.sage-mode .dm-tab {
             background-color: #6b7c79;
             border: 2px outset #6b7c79;
             color: #e0f0f0;
@@ -245,7 +245,7 @@
             color: #e0e0e0;
         }
         
-        body.turquoise-mode .dm-tab.active {
+        body.sage-mode .dm-tab.active {
             border: 2px inset #6b7c79;
             background-color: #4a5b58;
             color: #e0f0f0;
@@ -259,7 +259,7 @@
             background-color: #666;
         }
         
-        body.turquoise-mode .dm-tab:hover:not(.active) {
+        body.sage-mode .dm-tab:hover:not(.active) {
             background-color: #7c8d8a;
         }
         
@@ -273,8 +273,8 @@
             color: #4da6ff;
         }
         
-        body.turquoise-mode .status {
-            color: #40e0d0;
+        body.sage-mode .status {
+            color: #34c2b3;
         }
         
         .theme-switcher {
@@ -293,13 +293,98 @@
         .hidden {
             display: none;
         }
+
+        /* geis theme styles */
+body.geis-mode {
+    background-color: #2c2538; /* dark purple background */
+}
+
+body.geis-mode .container {
+    background-color: #4d3d69; /* main purple container */
+    border: 2px inset #3c3c3c; /* grey border */
+    color: #f0e6ff;
+}
+
+body.geis-mode .chat-messages,
+body.geis-mode .online-users {
+    background-color: #3c354a;
+    border: 2px inset #3c3c3c;
+    color: #f0e6ff;
+}
+
+body.geis-mode .username {
+    color: #c8b6e6;
+}
+
+body.geis-mode input[type="text"], 
+body.geis-mode input[type="password"] {
+    background-color: #333; /* dark grey input */
+    color: #f0e6ff;
+    border: 2px inset #555;
+}
+
+body.geis-mode button {
+    background-color: #3c3c3c; /* grey button */
+    border: 2px outset #555;
+    color: #f0e6ff;
+}
+
+body.geis-mode button:active {
+    border: 2px inset #555;
+}
+
+body.geis-mode .user-item:hover {
+    background-color: #c8b6e6;
+    color: #2c2538;
+}
+
+body.geis-mode .dm-tabs {
+    border-bottom: 2px inset #3c3c3c;
+}
+
+body.geis-mode .dm-tab {
+    background-color: #3c3c3c;
+    border: 2px outset #555;
+    color: #f0e6ff;
+}
+
+body.geis-mode .dm-tab.active {
+    background-color: #9881c2; /* lighter purple for active dm */
+    border: 2px inset #7a60a3;
+    color: #2c2538;
+}
+
+body.geis-mode .dm-tab:hover:not(.active) {
+    background-color: #666;
+}
+
+body.geis-mode .status {
+    color: #c8b6e6; /* purple accent for status */
+}
+
+.room-tab {
+    background-color: #90EE90; /* light green for classic theme */
+}
+
+body.dark-mode .room-tab {
+    background-color: #4da6ff;
+}
+
+body.turquoise-mode .room-tab {
+    background-color: #40e0d0;
+}
+
+body.geis-mode .room-tab {
+    background-color: #6a5093; /* a nice purple for your theme */
+}
     </style>
 </head>
 <body>
     <div class="theme-switcher">
         <button class="theme-btn" onclick="setTheme('light')">classic</button>
         <button class="theme-btn" onclick="setTheme('dark')">dark</button>
-        <button class="theme-btn" onclick="setTheme('turquoise')">turquoise</button>
+        <button class="theme-btn" onclick="setTheme('sage')">sage</button>
+        <button class="theme-btn" onclick="setTheme('geis')">geis</button> 
     </div>
     
     <div class="container">
@@ -321,13 +406,12 @@
             </div>
             
             <div class="online-users">
-                <strong>chat rooms:</strong>
-                <div>
-                    <input type="text" id="roomNameInput" placeholder="room name" style="width: 120px; margin: 5px;">
-                    <button onclick="createRoom()" style="margin: 2px; padding: 3px 8px; font-size: 11px;">create</button>
-                </div>
-                <div id="roomsList"></div>
-            </div>
+    <strong>chat rooms:</strong>
+    <div>
+        <input type="text" id="roomNameInput" placeholder="type a room name" style="width: 120px; margin: 5px;">
+        <button onclick="joinOrCreateRoom()" style="margin: 2px; padding: 3px 8px; font-size: 11px;">join</button>
+    </div>
+</div>
             
             <div class="dm-tabs" id="dmTabs">
                 <div class="dm-tab active" onclick="switchToTab('main')">main chat</div>
@@ -352,18 +436,19 @@
 
         function setTheme(theme) {
     // first, clear any existing theme classes from the body
-    document.body.classList.remove('dark-mode', 'turquoise-mode');
+    document.body.classList.remove('dark-mode', 'sage-mode', 'geis-mode');
 
     // then, add the new theme class if it's not the default 'light' theme
     if (theme === 'dark') {
         document.body.classList.add('dark-mode');
-    } else if (theme === 'turquoise') {
-        document.body.classList.add('turquoise-mode');
+    } else if (theme === 'sage') {
+        document.body.classList.add('sage-mode');
+    } else if (theme === 'geis') {
+        document.body.classList.add('geis-mode');
     }
     
-    // a small bonus: re-run these functions to update colors instantly
+    // re-run these functions to update colors instantly
     if (currentUser) {
-        updateRooms();
         updateDMTabs();
     }
 }
@@ -372,8 +457,6 @@
         window.onload = function() {
             loadMessages();
             updateOnlineUsers();
-            updateRooms();
-            updateRooms();
             updateDMTabs();
             setInterval(pollForUpdates, 1000);
         };
@@ -602,7 +685,6 @@
             if (currentUser) {
                 loadMessages();
                 updateOnlineUsers();
-                updateRooms();
                 updateDMTabs();
             }
         }
@@ -670,99 +752,69 @@
         }
         
         function updateDMTabs() {
-            const dmTabsContainer = document.getElementById('dmTabs');
-            
-            dmTabsContainer.innerHTML = dmTabs.map(tab => {
-                if (tab === 'main') {
-                    return `<div class="dm-tab ${currentTab === 'main' ? 'active' : ''}" onclick="switchToTab('main')">main chat</div>`;
-                } else if (tab.startsWith('room-')) {
-                    const roomName = tab.replace('room-', '');
-                    const roomColor = document.body.classList.contains('dark-mode') ? '#4da6ff' : 
-                                     document.body.classList.contains('turquoise-mode') ? '#40e0d0' : '#90EE90';
-                    return `<div class="dm-tab ${currentTab === tab ? 'active' : ''}" onclick="switchToTab('${tab}')" style="background-color: ${roomColor};">room: ${roomName}</div>`;
-                } else {
-                    const otherUser = tab.split('-').find(u => u !== currentUser);
-                    return `<div class="dm-tab ${currentTab === tab ? 'active' : ''}" onclick="switchToTab('${tab}')">dm: ${otherUser}</div>`;
-                }
-            }).join('');
+    const dmTabsContainer = document.getElementById('dmTabs');
+    
+    dmTabsContainer.innerHTML = dmTabs.map(tab => {
+        if (tab === 'main') {
+            return `<div class="dm-tab ${currentTab === 'main' ? 'active' : ''}" onclick="switchToTab('main')">main chat</div>`;
+        } else if (tab.startsWith('room-')) {
+            const roomName = tab.replace('room-', '');
+            // notice the inline style is gone and 'room-tab' class is added
+            return `<div class="dm-tab room-tab ${currentTab === tab ? 'active' : ''}" onclick="switchToTab('${tab}')">room: ${roomName}</div>`;
+        } else {
+            const otherUser = tab.split('-').find(u => u !== currentUser);
+            return `<div class="dm-tab ${currentTab === tab ? 'active' : ''}" onclick="switchToTab('${tab}')">dm: ${otherUser}</div>`;
         }
+    }).join('');
+}
         
         // handle enter key in inputs
         document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                if (e.target.id === 'messageInput') {
-                    sendMessage();
-                } else if (e.target.id === 'passwordInput' || e.target.id === 'usernameInput') {
-                    login();
-                } else if (e.target.id === 'roomNameInput') {
-                    createRoom();
-                }
-            }
-        });
-        
-        // room functions
-        async function createRoom() {
-            const roomNameInput = document.getElementById('roomNameInput');
-            const roomName = roomNameInput.value.trim().toLowerCase();
-            
-            if (!roomName || !currentUser) return;
-            
-            // check if room name is valid (no spaces, special chars)
-            if (!/^[a-z0-9_-]+$/.test(roomName)) {
-                alert('room names can only contain letters, numbers, _ and -');
-                return;
-            }
-            
-            const rooms = await getStoredData('chatRooms');
-            const roomKey = `room-${roomName}`;
-            
-            if (!rooms[roomName]) {
-                rooms[roomName] = {
-                    name: roomName,
-                    creator: currentUser,
-                    created: Date.now()
-                };
-                await setStoredData('chatRooms', rooms);
-            }
-            
-            // add to tabs if not already there
-            if (!dmTabs.includes(roomKey)) {
-                dmTabs.push(roomKey);
-                updateDMTabs();
-            }
-            
-            roomNameInput.value = '';
-            switchToTab(roomKey);
-            updateRooms();
+    if (e.key === 'Enter') {
+        if (e.target.id === 'messageInput') {
+            sendMessage();
+        } else if (e.target.id === 'passwordInput' || e.target.id === 'usernameInput') {
+            login();
+        } else if (e.target.id === 'roomNameInput') {
+            joinOrCreateRoom(); // change this line
         }
+    }
+});
         
-        async function joinRoom(roomName) {
-            const roomKey = `room-${roomName}`;
-            
-            if (!dmTabs.includes(roomKey)) {
-                dmTabs.push(roomKey);
-                updateDMTabs();
-            }
-            
-            switchToTab(roomKey);
-        }
-        
-        async function updateRooms() {
-            const rooms = await getStoredData('chatRooms');
-            const roomsList = document.getElementById('roomsList');
-            
-            const roomNames = Object.keys(rooms);
-            
-            if (roomNames.length > 0) {
-                const roomColor = document.body.classList.contains('dark-mode') ? '#4da6ff' : 
-                                 document.body.classList.contains('turquoise-mode') ? '#40e0d0' : '#008000';
-                roomsList.innerHTML = roomNames.map(roomName => 
-                    `<div class="user-item" onclick="joinRoom('${roomName}')" style="color: ${roomColor};"># ${roomName}</div>`
-                ).join('');
-            } else {
-                roomsList.textContent = 'no rooms yet';
-            }
-        }
+        async function joinOrCreateRoom() {
+    const roomNameInput = document.getElementById('roomNameInput');
+    const roomName = roomNameInput.value.trim().toLowerCase();
+
+    if (!roomName || !currentUser) return;
+
+    // check if room name is valid (no spaces, special chars)
+    if (!/^[a-z0-9_-]+$/.test(roomName)) {
+        alert('room names can only contain letters, numbers, _ and -');
+        return;
+    }
+
+    const rooms = await getStoredData('chatRooms');
+    const roomKey = `room-${roomName}`;
+
+    // if room doesn't exist, create it
+    if (!rooms[roomName]) {
+        rooms[roomName] = {
+            name: roomName,
+            creator: currentUser,
+            created: Date.now()
+        };
+        await setStoredData('chatRooms', rooms);
+    }
+
+    // add to tabs if not already there
+    if (!dmTabs.includes(roomKey)) {
+        dmTabs.push(roomKey);
+        updateDMTabs();
+    }
+
+    roomNameInput.value = '';
+    switchToTab(roomKey);
+}
         
         // clean up on page unload
         window.addEventListener('beforeunload', async function() {
