@@ -13,10 +13,12 @@ let onlineUsers = {};
 let chatMessages = {};
 let dmMessages = {};
 let userColors = {};
+let chatRooms = {}; // <-- added this
+let roomMessages = {}; // <-- and this
 
 // serve your html file at the root
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
+    res.sendFile(__dirname + '/beta.html'); // updated to serve beta.html
 });
 
 // get all data (replaces localStorage.getItem)
@@ -38,6 +40,12 @@ app.get('/api/data/:key', (req, res) => {
             break;
         case 'userColors':
             res.json(userColors);
+            break;
+        case 'chatRooms': // <-- added this case
+            res.json(chatRooms);
+            break;
+        case 'roomMessages': // <-- and this one
+            res.json(roomMessages);
             break;
         default:
             res.json({});
@@ -64,6 +72,12 @@ app.post('/api/data/:key', (req, res) => {
             break;
         case 'userColors':
             userColors = data;
+            break;
+        case 'chatRooms': // <-- added this case
+            chatRooms = data;
+            break;
+        case 'roomMessages': // <-- and this one
+            roomMessages = data;
             break;
     }
     
