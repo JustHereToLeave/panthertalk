@@ -1,89 +1,63 @@
-const express = require('express');
-const cors = require('cors');
-const app = express();
+import express from 'express';
+import cors from 'cors';
+import { JSONFilePreset } from 'lowdb/node';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// enable cors and json parsing
+// --- setup express app ---
+const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.')); // serve your html file
 
-// in-memory storage (resets when server restarts)
-let chatUsers = {};
-let onlineUsers = {};
-let chatMessages = {};
-let dmMessages = {};
-let userColors = {};
-let chatRooms = {}; // <-- added this
-let roomMessages = {}; // <-- and this
+// --- setup file paths for serving static files ---
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use(express.static(path.join(__dirname, '.')));
+
+// --- setup lowdb database ---
+const defaultData = {
+  chatUsers: {},
+  onlineUsers: {},
+  chatMessages: {},
+  dmMessages: {},
+  userColors: {},
+  chatRooms: {},
+  roomMessages: {}
+};
+const db = await JSONFilePreset('db.json', defaultData);
+
+// --- api endpoints ---
 
 // serve your html file at the root
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/beta.html'); // updated to serve beta.html
+    res.sendFile(path.join(__dirname, 'beta.html'));
 });
 
-// get all data (replaces localStorage.getItem)
+// get data from the database
 app.get('/api/data/:key', (req, res) => {
     const key = req.params.key;
-    
-    switch(key) {
-        case 'chatUsers':
-            res.json(chatUsers);
-            break;
-        case 'onlineUsers':
-            res.json(onlineUsers);
-            break;
-        case 'chatMessages':
-            res.json(chatMessages);
-            break;
-        case 'dmMessages':
-            res.json(dmMessages);
-            break;
-        case 'userColors':
-            res.json(userColors);
-            break;
-        case 'chatRooms': // <-- added this case
-            res.json(chatRooms);
-            break;
-        case 'roomMessages': // <-- and this one
-            res.json(roomMessages);
-            break;
-        default:
-            res.json({});
+    if (db.data[key] !== undefined) {
+        res.json(db.data[key]);
+    } else {
+        res.json({});
     }
 });
 
-// save data (replaces localStorage.setItem)
-app.post('/api/data/:key', (req, res) => {
+// save data to the database
+app.post('/api/data/:key', async (req, res) => {
     const key = req.params.key;
     const data = req.body;
     
-    switch(key) {
-        case 'chatUsers':
-            chatUsers = data;
-            break;
-        case 'onlineUsers':
-            onlineUsers = data;
-            break;
-        case 'chatMessages':
-            chatMessages = data;
-            break;
-        case 'dmMessages':
-            dmMessages = data;
-            break;
-        case 'userColors':
-            userColors = data;
-            break;
-        case 'chatRooms': // <-- added this case
-            chatRooms = data;
-            break;
-        case 'roomMessages': // <-- and this one
-            roomMessages = data;
-            break;
+    if (db.data[key] !== undefined) {
+        db.data[key] = data;
+        await db.write(); // save changes to db.json
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ success: false, message: 'key not found' });
     }
-    
-    res.json({ success: true });
 });
 
+// --- start server ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`chat server running on port ${PORT}`);
