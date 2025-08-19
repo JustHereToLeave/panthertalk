@@ -3,13 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>panthertalk v2.0</title>
+    <title>panthertalk v3.0</title>
     <style>
         body {
             font-family: 'Courier New', monospace;
             background-color: #c0c0c0;
             margin: 0;
             padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        body.dark-mode {
+            background-color: #2d2d2d;
+        }
+        
+        body.sage-mode {
+            background-color: #4a5d5a;
         }
         
         .container {
@@ -18,6 +27,19 @@
             background-color: white;
             border: 2px inset #c0c0c0;
             padding: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        body.dark-mode .container {
+            background-color: #404040;
+            border: 2px inset #555;
+            color: #e0e0e0;
+        }
+        
+        body.sage-mode .container {
+            background-color: #5a6b68;
+            border: 2px inset #6b7c79;
+            color: #e0f0f0;
         }
         
         .login-form, .chat-interface {
@@ -32,6 +54,19 @@
             overflow-y: scroll;
             font-size: 12px;
             margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        body.dark-mode .chat-messages {
+            background-color: #333;
+            border: 2px inset #555;
+            color: #e0e0e0;
+        }
+        
+        body.sage-mode .chat-messages {
+            background-color: #4a5b58;
+            border: 2px inset #6b7c79;
+            color: #e0f0f0;
         }
         
         .message {
@@ -48,11 +83,36 @@
             color: #000080;
         }
         
+        body.dark-mode .username {
+            color: #4da6ff;
+        }
+        
+        body.sage-mode .username {
+            color: #279287;
+        }
+        
         input[type="text"], input[type="password"] {
             border: 2px inset #c0c0c0;
             padding: 5px;
             font-family: 'Courier New', monospace;
             margin: 5px;
+            background-color: white;
+            color: black;
+            transition: all 0.3s ease;
+        }
+        
+        body.dark-mode input[type="text"], 
+        body.dark-mode input[type="password"] {
+            background-color: #333;
+            color: #e0e0e0;
+            border: 2px inset #555;
+        }
+        
+        body.sage-mode input[type="text"], 
+        body.sage-mode input[type="password"] {
+            background-color: #4a5b58;
+            color: #e0f0f0;
+            border: 2px inset #6b7c79;
         }
         
         button {
@@ -62,10 +122,32 @@
             font-family: 'Courier New', monospace;
             cursor: pointer;
             margin: 5px;
+            color: black;
+            transition: all 0.3s ease;
+        }
+        
+        body.dark-mode button {
+            background-color: #555;
+            border: 2px outset #555;
+            color: #e0e0e0;
+        }
+        
+        body.sage-mode button {
+            background-color: #6b7c79;
+            border: 2px outset #6b7c79;
+            color: #e0f0f0;
         }
         
         button:active {
             border: 2px inset #c0c0c0;
+        }
+        
+        body.dark-mode button:active {
+            border: 2px inset #555;
+        }
+        
+        body.sage-mode button:active {
+            border: 2px inset #6b7c79;
         }
         
         .online-users {
@@ -75,6 +157,19 @@
             margin-bottom: 10px;
             font-size: 12px;
             min-height: 50px;
+            transition: all 0.3s ease;
+        }
+        
+        body.dark-mode .online-users {
+            background-color: #333;
+            border: 2px inset #555;
+            color: #e0e0e0;
+        }
+        
+        body.sage-mode .online-users {
+            background-color: #4a5b58;
+            border: 2px inset #6b7c79;
+            color: #e0f0f0;
         }
         
         .user-item {
@@ -89,10 +184,29 @@
             color: white;
         }
         
+        body.dark-mode .user-item:hover {
+            background-color: #4da6ff;
+            color: #2d2d2d;
+        }
+        
+        body.sage-mode .user-item:hover {
+            background-color: #279287;
+            color: #4a5d5a;
+        }
+        
         .dm-tabs {
             border-bottom: 2px inset #c0c0c0;
             margin-bottom: 10px;
             padding: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        body.dark-mode .dm-tabs {
+            border-bottom: 2px inset #555;
+        }
+        
+        body.sage-mode .dm-tabs {
+            border-bottom: 2px inset #6b7c79;
         }
         
         .dm-tab {
@@ -103,15 +217,50 @@
             cursor: pointer;
             display: inline-block;
             font-size: 11px;
+            color: black;
+            transition: all 0.3s ease;
+        }
+        
+        body.dark-mode .dm-tab {
+            background-color: #555;
+            border: 2px outset #555;
+            color: #e0e0e0;
+        }
+        
+        body.sage-mode .dm-tab {
+            background-color: #6b7c79;
+            border: 2px outset #6b7c79;
+            color: #e0f0f0;
         }
         
         .dm-tab.active {
             border: 2px inset #c0c0c0;
             background-color: white;
+            color: black;
+        }
+        
+        body.dark-mode .dm-tab.active {
+            border: 2px inset #555;
+            background-color: #333;
+            color: #e0e0e0;
+        }
+        
+        body.sage-mode .dm-tab.active {
+            border: 2px inset #6b7c79;
+            background-color: #4a5b58;
+            color: #e0f0f0;
         }
         
         .dm-tab:hover:not(.active) {
             background-color: #d0d0d0;
+        }
+        
+        body.dark-mode .dm-tab:hover:not(.active) {
+            background-color: #666;
+        }
+        
+        body.sage-mode .dm-tab:hover:not(.active) {
+            background-color: #7c8d8a;
         }
         
         .status {
@@ -120,14 +269,111 @@
             margin-bottom: 10px;
         }
         
+        body.dark-mode .status {
+            color: #4da6ff;
+        }
+        
+        body.sage-mode .status {
+            color: #34c2b3;
+        }
+        
+        .theme-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 11px;
+        }
+        
+        .theme-btn {
+            padding: 3px 8px;
+            margin: 2px;
+            font-size: 10px;
+        }
+        
         .hidden {
             display: none;
         }
+
+        /* geis theme styles */
+body.geis-mode {
+    background-color: #2c2538; /* dark purple background */
+}
+
+body.geis-mode .container {
+    background-color: #4d3d69; /* main purple container */
+    border: 2px inset #3c3c3c; /* grey border */
+    color: #f0e6ff;
+}
+
+body.geis-mode .chat-messages,
+body.geis-mode .online-users {
+    background-color: #3c354a;
+    border: 2px inset #3c3c3c;
+    color: #f0e6ff;
+}
+
+body.geis-mode .username {
+    color: #c8b6e6;
+}
+
+body.geis-mode input[type="text"], 
+body.geis-mode input[type="password"] {
+    background-color: #333; /* dark grey input */
+    color: #f0e6ff;
+    border: 2px inset #555;
+}
+
+body.geis-mode button {
+    background-color: #3c3c3c; /* grey button */
+    border: 2px outset #555;
+    color: #f0e6ff;
+}
+
+body.geis-mode button:active {
+    border: 2px inset #555;
+}
+
+body.geis-mode .user-item:hover {
+    background-color: #c8b6e6;
+    color: #2c2538;
+}
+
+body.geis-mode .dm-tabs {
+    border-bottom: 2px inset #3c3c3c;
+}
+
+body.geis-mode .dm-tab {
+    background-color: #3c3c3c;
+    border: 2px outset #555;
+    color: #f0e6ff;
+}
+
+body.geis-mode .dm-tab.active {
+    background-color: #9881c2; /* lighter purple for active dm */
+    border: 2px inset #7a60a3;
+    color: #2c2538;
+}
+
+body.geis-mode .dm-tab:hover:not(.active) {
+    background-color: #666;
+}
+
+body.geis-mode .status {
+    color: #c8b6e6; /* purple accent for status */
+}
+
     </style>
 </head>
 <body>
+    <div class="theme-switcher">
+        <button class="theme-btn" onclick="setTheme('light')">classic</button>
+        <button class="theme-btn" onclick="setTheme('dark')">dark</button>
+        <button class="theme-btn" onclick="setTheme('sage')">sage</button>
+        <button class="theme-btn" onclick="setTheme('geis')">geis</button> 
+    </div>
+    
     <div class="container">
-        <h2>panthertalk v2.0</h2>
+        <h2>panthertalk v3.0</h2>
         
         <div id="loginForm" class="login-form">
             <div>username: <input type="text" id="usernameInput" placeholder="enter username"></div>
@@ -142,6 +388,15 @@
             <div class="online-users">
                 <strong>online users (click to dm):</strong>
                 <div id="onlineUsersList"></div>
+            </div>
+            
+            <div class="online-users">
+                <strong>chat rooms:</strong>
+                <div>
+                    <input type="text" id="roomNameInput" placeholder="room name" style="width: 120px; margin: 5px;">
+                    <button onclick="createRoom()" style="margin: 2px; padding: 3px 8px; font-size: 11px;">create</button>
+                </div>
+                <div id="roomsList"></div>
             </div>
             
             <div class="dm-tabs" id="dmTabs">
@@ -164,11 +419,33 @@
         let lastMessageId = 0;
         let currentTab = 'main';
         let dmTabs = ['main'];
+
+        function setTheme(theme) {
+    // first, clear any existing theme classes from the body
+    document.body.classList.remove('dark-mode', 'sage-mode', 'geis-mode');
+
+    // then, add the new theme class if it's not the default 'light' theme
+    if (theme === 'dark') {
+        document.body.classList.add('dark-mode');
+    } else if (theme === 'sage') {
+        document.body.classList.add('sage-mode');
+    } else if (theme === 'geis') {
+        document.body.classList.add('geis-mode');
+    }
+    
+    // re-run these functions to update colors instantly
+    if (currentUser) {
+        updateRooms();
+        updateDMTabs();
+    }
+}
         
         // initialize app
         window.onload = function() {
             loadMessages();
             updateOnlineUsers();
+            updateRooms();
+            updateRooms();
             updateDMTabs();
             setInterval(pollForUpdates, 1000);
         };
@@ -297,6 +574,11 @@
                 const messages = await getStoredData('chatMessages');
                 messages[messageId] = message;
                 await setStoredData('chatMessages', messages);
+            } else if (currentTab.startsWith('room-')) {
+                const roomMessages = await getStoredData('roomMessages');
+                if (!roomMessages[currentTab]) roomMessages[currentTab] = {};
+                roomMessages[currentTab][messageId] = message;
+                await setStoredData('roomMessages', roomMessages);
             } else {
                 const dmMessages = await getStoredData('dmMessages');
                 if (!dmMessages[currentTab]) dmMessages[currentTab] = {};
@@ -315,6 +597,9 @@
             let messages;
             if (currentTab === 'main') {
                 messages = await getStoredData('chatMessages');
+            } else if (currentTab.startsWith('room-')) {
+                const roomMessages = await getStoredData('roomMessages');
+                messages = roomMessages[currentTab] || {};
             } else {
                 const dmMessages = await getStoredData('dmMessages');
                 messages = dmMessages[currentTab] || {};
@@ -389,6 +674,7 @@
             if (currentUser) {
                 loadMessages();
                 updateOnlineUsers();
+                updateRooms();
                 updateDMTabs();
             }
         }
@@ -444,6 +730,9 @@
             const messageInput = document.getElementById('messageInput');
             if (tabName === 'main') {
                 messageInput.placeholder = 'type your message...';
+            } else if (tabName.startsWith('room-')) {
+                const roomName = tabName.replace('room-', '');
+                messageInput.placeholder = `message in ${roomName}...`;
             } else {
                 const otherUser = tabName.split('-').find(u => u !== currentUser);
                 messageInput.placeholder = `dm to ${otherUser}...`;
@@ -458,6 +747,11 @@
             dmTabsContainer.innerHTML = dmTabs.map(tab => {
                 if (tab === 'main') {
                     return `<div class="dm-tab ${currentTab === 'main' ? 'active' : ''}" onclick="switchToTab('main')">main chat</div>`;
+                } else if (tab.startsWith('room-')) {
+                    const roomName = tab.replace('room-', '');
+                    const roomColor = document.body.classList.contains('dark-mode') ? '#4da6ff' : 
+                                     document.body.classList.contains('sage-mode') ? '#279287' : '#90EE90';
+                    return `<div class="dm-tab ${currentTab === tab ? 'active' : ''}" onclick="switchToTab('${tab}')" style="background-color: ${roomColor};">room: ${roomName}</div>`;
                 } else {
                     const otherUser = tab.split('-').find(u => u !== currentUser);
                     return `<div class="dm-tab ${currentTab === tab ? 'active' : ''}" onclick="switchToTab('${tab}')">dm: ${otherUser}</div>`;
@@ -472,9 +766,75 @@
                     sendMessage();
                 } else if (e.target.id === 'passwordInput' || e.target.id === 'usernameInput') {
                     login();
+                } else if (e.target.id === 'roomNameInput') {
+                    createRoom();
                 }
             }
         });
+        
+        // room functions
+        async function createRoom() {
+            const roomNameInput = document.getElementById('roomNameInput');
+            const roomName = roomNameInput.value.trim().toLowerCase();
+            
+            if (!roomName || !currentUser) return;
+            
+            // check if room name is valid (no spaces, special chars)
+            if (!/^[a-z0-9_-]+$/.test(roomName)) {
+                alert('room names can only contain letters, numbers, _ and -');
+                return;
+            }
+            
+            const rooms = await getStoredData('chatRooms');
+            const roomKey = `room-${roomName}`;
+            
+            if (!rooms[roomName]) {
+                rooms[roomName] = {
+                    name: roomName,
+                    creator: currentUser,
+                    created: Date.now()
+                };
+                await setStoredData('chatRooms', rooms);
+            }
+            
+            // add to tabs if not already there
+            if (!dmTabs.includes(roomKey)) {
+                dmTabs.push(roomKey);
+                updateDMTabs();
+            }
+            
+            roomNameInput.value = '';
+            switchToTab(roomKey);
+            updateRooms();
+        }
+        
+        async function joinRoom(roomName) {
+            const roomKey = `room-${roomName}`;
+            
+            if (!dmTabs.includes(roomKey)) {
+                dmTabs.push(roomKey);
+                updateDMTabs();
+            }
+            
+            switchToTab(roomKey);
+        }
+        
+        async function updateRooms() {
+            const rooms = await getStoredData('chatRooms');
+            const roomsList = document.getElementById('roomsList');
+            
+            const roomNames = Object.keys(rooms);
+            
+            if (roomNames.length > 0) {
+                const roomColor = document.body.classList.contains('dark-mode') ? '#4da6ff' : 
+                                 document.body.classList.contains('sage-mode') ? '#279287' : '#008000';
+                roomsList.innerHTML = roomNames.map(roomName => 
+                    `<div class="user-item" onclick="joinRoom('${roomName}')" style="color: ${roomColor};"># ${roomName}</div>`
+                ).join('');
+            } else {
+                roomsList.textContent = 'no rooms yet';
+            }
+        }
         
         // clean up on page unload
         window.addEventListener('beforeunload', async function() {
