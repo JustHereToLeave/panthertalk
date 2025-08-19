@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>panthertalk v3.5</title>
+    <title>panthertalk v3.0</title>
     <style>
-        /* All your CSS styles go here - no changes needed */
         body {
             font-family: 'Courier New', monospace;
             background-color: #c0c0c0;
@@ -297,12 +296,12 @@
 
         /* geis theme styles */
         body.geis-mode {
-            background-color: #2c2538;
+            background-color: #2c2538; /* dark purple background */
         }
 
         body.geis-mode .container {
-            background-color: #4d3d69;
-            border: 2px inset #3c3c3c;
+            background-color: #4d3d69; /* main purple container */
+            border: 2px inset #3c3c3c; /* grey border */
             color: #f0e6ff;
         }
 
@@ -319,13 +318,13 @@
 
         body.geis-mode input[type="text"], 
         body.geis-mode input[type="password"] {
-            background-color: #333;
+            background-color: #333; /* dark grey input */
             color: #f0e6ff;
             border: 2px inset #555;
         }
 
         body.geis-mode button {
-            background-color: #3c3c3c;
+            background-color: #3c3c3c; /* grey button */
             border: 2px outset #555;
             color: #f0e6ff;
         }
@@ -350,7 +349,7 @@
         }
 
         body.geis-mode .dm-tab.active {
-            background-color: #9881c2;
+            background-color: #9881c2; /* lighter purple for active dm */
             border: 2px inset #7a60a3;
             color: #2c2538;
         }
@@ -360,11 +359,11 @@
         }
 
         body.geis-mode .status {
-            color: #c8b6e6;
+            color: #c8b6e6; /* purple accent for status */
         }
 
         .room-tab {
-            background-color: #90EE90;
+            background-color: #90EE90; /* light green for classic theme */
         }
 
         body.dark-mode .room-tab {
@@ -376,7 +375,7 @@
         }
 
         body.geis-mode .room-tab {
-            background-color: #6a5093;
+            background-color: #6a5093; /* a nice purple for your theme */
         }
     </style>
 </head>
@@ -389,7 +388,7 @@
     </div>
     
     <div class="container">
-        <h2>panthertalk v3.5</h2>
+        <h2>panthertalk v3.0</h2>
         
         <div id="loginForm" class="login-form">
             <div>username: <input type="text" id="usernameInput" placeholder="enter username"></div>
@@ -431,49 +430,38 @@
 
     <script>
         let currentUser = null;
+        let lastMessageId = 0;
         let currentTab = 'main';
         let dmTabs = ['main'];
-        let ws; // <-- WebSocket variable
 
         function setTheme(theme) {
+            // first, clear any existing theme classes from the body
             document.body.classList.remove('dark-mode', 'sage-mode', 'geis-mode');
-            if (theme === 'dark') document.body.classList.add('dark-mode');
-            else if (theme === 'sage') document.body.classList.add('sage-mode');
-            else if (theme === 'geis') document.body.classList.add('geis-mode');
-            if (currentUser) updateDMTabs();
+
+            // then, add the new theme class if it's not the default 'light' theme
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+            } else if (theme === 'sage') {
+                document.body.classList.add('sage-mode');
+            } else if (theme === 'geis') {
+                document.body.classList.add('geis-mode');
+            }
+            
+            // re-run these functions to update colors instantly
+            if (currentUser) {
+                updateDMTabs();
+            }
         }
         
-        // --- NEW: WebSocket Connection ---
-        function connectWebSocket() {
-            // Use wss:// for secure connection on Render, ws:// for local
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            ws = new WebSocket(`${protocol}//${window.location.host}`);
-
-            ws.onopen = () => console.log('websocket connected');
-            ws.onclose = () => console.log('websocket disconnected');
-
-            ws.onmessage = event => {
-                const data = JSON.parse(event.data);
-                
-                // When server broadcasts a new message, reload if it's for the current channel
-                if (data.type === 'newMessage' && data.payload.channel === currentTab) {
-                    loadMessages();
-                }
-
-                // When server says users have updated, refresh the user list
-                if (data.type === 'updateUsers') {
-                    updateOnlineUsers();
-                }
-            };
-        }
-
+        // initialize app
         window.onload = function() {
-            // No longer need to poll, just load the initial state
             loadMessages();
             updateOnlineUsers();
             updateDMTabs();
+            setInterval(pollForUpdates, 1000);
         };
         
+        // CHANGED: use server instead of localStorage
         async function getStoredData(key) {
             try {
                 const response = await fetch(`/api/data/${key}`);
@@ -484,11 +472,14 @@
             }
         }
         
+        // CHANGED: use server instead of localStorage  
         async function setStoredData(key, data) {
             try {
                 await fetch(`/api/data/${key}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify(data)
                 });
             } catch (error) {
@@ -510,9 +501,11 @@
             const onlineUsers = await getStoredData('onlineUsers');
             const userColors = await getStoredData('userColors');
             
+            // normalize username - find existing case-insensitive match
             const usernameLower = username.toLowerCase();
             let actualUsername = username;
             
+            // find if username already exists with different case
             for (const existingUser in users) {
                 if (existingUser.toLowerCase() === usernameLower) {
                     actualUsername = existingUser;
@@ -520,6 +513,7 @@
                 }
             }
             
+            // check if user exists
             if (users[actualUsername]) {
                 if (users[actualUsername] !== password) {
                     loginStatus.innerHTML = '<span style="color: red;">incorrect password</span>';
@@ -530,20 +524,17 @@
                     return;
                 }
             } else {
+                // register new user - use the case they typed
                 users[actualUsername] = password;
                 await setStoredData('chatUsers', users);
             }
             
+            // login successful
             currentUser = actualUsername;
             onlineUsers[actualUsername] = Date.now();
             await setStoredData('onlineUsers', onlineUsers);
             
-            // Connect to WebSocket on login
-            connectWebSocket();
-            
-            // Tell server to update user lists for everyone
-            setTimeout(() => ws.send(JSON.stringify({ type: 'userUpdate' })), 500);
-
+            // set user's color picker to their saved color
             const savedColor = userColors[actualUsername] || '#000080';
             document.getElementById('colorPicker').value = savedColor;
             
@@ -554,6 +545,7 @@
             loadMessages();
             updateOnlineUsers();
             
+            // focus message input
             document.getElementById('messageInput').focus();
         }
         
@@ -562,12 +554,9 @@
                 const onlineUsers = await getStoredData('onlineUsers');
                 delete onlineUsers[currentUser];
                 await setStoredData('onlineUsers', onlineUsers);
-                ws.send(JSON.stringify({ type: 'userUpdate' }));
                 currentUser = null;
             }
             
-            if (ws) ws.close();
-
             document.getElementById('loginForm').classList.remove('hidden');
             document.getElementById('chatInterface').classList.add('hidden');
             document.getElementById('usernameInput').value = '';
@@ -575,12 +564,12 @@
             document.getElementById('loginStatus').innerHTML = '';
         }
         
-        // --- UPDATED: sendMessage now uses WebSocket ---
         async function sendMessage() {
-            if (!currentUser || !ws) return;
+            if (!currentUser) return;
             
             const messageInput = document.getElementById('messageInput');
             const messageText = messageInput.value.trim();
+            
             if (!messageText) return;
             
             const messageId = Date.now() + Math.random();
@@ -592,18 +581,23 @@
                 channel: currentTab
             };
             
-            // Send the message to the server via WebSocket
-            ws.send(JSON.stringify({
-                type: 'chatMessage',
-                payload: {
-                    id: messageId,
-                    channel: currentTab,
-                    content: message
-                }
-            }));
+            if (currentTab === 'main') {
+                const messages = await getStoredData('chatMessages');
+                messages[messageId] = message;
+                await setStoredData('chatMessages', messages);
+            } else if (currentTab.startsWith('room-')) {
+                const roomMessages = await getStoredData('roomMessages');
+                if (!roomMessages[currentTab]) roomMessages[currentTab] = {};
+                roomMessages[currentTab][messageId] = message;
+                await setStoredData('roomMessages', roomMessages);
+            } else {
+                const dmMessages = await getStoredData('dmMessages');
+                if (!dmMessages[currentTab]) dmMessages[currentTab] = {};
+                dmMessages[currentTab][messageId] = message;
+                await setStoredData('dmMessages', dmMessages);
+            }
             
             messageInput.value = '';
-            // The message will appear instantly for everyone else. Let's make it appear for us too.
             loadMessages();
         }
         
@@ -622,10 +616,12 @@
                 messages = dmMessages[currentTab] || {};
             }
             
+            // convert to array and sort by timestamp
             const messageArray = Object.values(messages).sort((a, b) => 
                 new Date(a.timestamp) - new Date(b.timestamp)
             );
             
+            // only show last 100 messages
             const recentMessages = messageArray.slice(-100);
             
             chatMessages.innerHTML = '';
@@ -647,6 +643,7 @@
                 chatMessages.appendChild(messageDiv);
             });
             
+            // scroll to bottom
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
         
@@ -654,6 +651,7 @@
             const onlineUsers = await getStoredData('onlineUsers');
             const onlineUsersList = document.getElementById('onlineUsersList');
             
+            // remove users inactive for more than 30 seconds
             const now = Date.now();
             let updated = false;
             for (const username in onlineUsers) {
@@ -666,6 +664,7 @@
                 await setStoredData('onlineUsers', onlineUsers);
             }
             
+            // update current user's timestamp if logged in
             if (currentUser && onlineUsers[currentUser]) {
                 onlineUsers[currentUser] = now;
                 await setStoredData('onlineUsers', onlineUsers);
@@ -682,6 +681,14 @@
             }
         }
         
+        function pollForUpdates() {
+            if (currentUser) {
+                loadMessages();
+                updateOnlineUsers();
+                updateDMTabs();
+            }
+        }
+        
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
@@ -690,19 +697,25 @@
         
         async function updateUserColor() {
             if (!currentUser) return;
+            
             const colorPicker = document.getElementById('colorPicker');
             const userColors = await getStoredData('userColors');
+            
             userColors[currentUser] = colorPicker.value;
             await setStoredData('userColors', userColors);
+            
+            // refresh messages to show new color
             loadMessages();
         }
         
         function startDM(otherUser) {
             const dmKey = createDMKey(currentUser, otherUser);
+            
             if (!dmTabs.includes(dmKey)) {
                 dmTabs.push(dmKey);
                 updateDMTabs();
             }
+            
             switchToTab(dmKey);
         }
         
@@ -712,10 +725,18 @@
         
         function switchToTab(tabName) {
             currentTab = tabName;
-            document.querySelectorAll('.dm-tab').forEach(tab => tab.classList.remove('active'));
-            const activeTab = document.querySelector(`[onclick="switchToTab('${tabName}')"]`);
-            if (activeTab) activeTab.classList.add('active');
             
+            // update tab appearance
+            document.querySelectorAll('.dm-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            const activeTab = document.querySelector(`[onclick="switchToTab('${tabName}')"]`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+            }
+            
+            // update message input placeholder
             const messageInput = document.getElementById('messageInput');
             if (tabName === 'main') {
                 messageInput.placeholder = 'type your message...';
@@ -726,16 +747,19 @@
                 const otherUser = tabName.split('-').find(u => u !== currentUser);
                 messageInput.placeholder = `dm to ${otherUser}...`;
             }
+            
             loadMessages();
         }
         
         function updateDMTabs() {
             const dmTabsContainer = document.getElementById('dmTabs');
+            
             dmTabsContainer.innerHTML = dmTabs.map(tab => {
                 if (tab === 'main') {
                     return `<div class="dm-tab ${currentTab === 'main' ? 'active' : ''}" onclick="switchToTab('main')">main chat</div>`;
                 } else if (tab.startsWith('room-')) {
                     const roomName = tab.replace('room-', '');
+                    // notice the inline style is gone and 'room-tab' class is added
                     return `<div class="dm-tab room-tab ${currentTab === tab ? 'active' : ''}" onclick="switchToTab('${tab}')">room: ${roomName}</div>`;
                 } else {
                     const otherUser = tab.split('-').find(u => u !== currentUser);
@@ -744,42 +768,60 @@
             }).join('');
         }
         
+        // handle enter key in inputs
         document.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                if (e.target.id === 'messageInput') sendMessage();
-                else if (e.target.id === 'passwordInput' || e.target.id === 'usernameInput') login();
-                else if (e.target.id === 'roomNameInput') joinOrCreateRoom();
+                if (e.target.id === 'messageInput') {
+                    sendMessage();
+                } else if (e.target.id === 'passwordInput' || e.target.id === 'usernameInput') {
+                    login();
+                } else if (e.target.id === 'roomNameInput') {
+                    joinOrCreateRoom(); // change this line
+                }
             }
         });
         
         async function joinOrCreateRoom() {
             const roomNameInput = document.getElementById('roomNameInput');
             const roomName = roomNameInput.value.trim().toLowerCase();
+
             if (!roomName || !currentUser) return;
+
+            // check if room name is valid (no spaces, special chars)
             if (!/^[a-z0-9_-]+$/.test(roomName)) {
                 alert('room names can only contain letters, numbers, _ and -');
                 return;
             }
+
             const rooms = await getStoredData('chatRooms');
             const roomKey = `room-${roomName}`;
+
+            // if room doesn't exist, create it
             if (!rooms[roomName]) {
-                rooms[roomName] = { name: roomName, creator: currentUser, created: Date.now() };
+                rooms[roomName] = {
+                    name: roomName,
+                    creator: currentUser,
+                    created: Date.now()
+                };
                 await setStoredData('chatRooms', rooms);
             }
+
+            // add to tabs if not already there
             if (!dmTabs.includes(roomKey)) {
                 dmTabs.push(roomKey);
                 updateDMTabs();
             }
+
             roomNameInput.value = '';
             switchToTab(roomKey);
         }
         
+        // clean up on page unload
         window.addEventListener('beforeunload', async function() {
             if (currentUser) {
                 const onlineUsers = await getStoredData('onlineUsers');
                 delete onlineUsers[currentUser];
                 await setStoredData('onlineUsers', onlineUsers);
-                if (ws) ws.send(JSON.stringify({ type: 'userUpdate' }));
             }
         });
     </script>
