@@ -1,63 +1,89 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient } = require('mongodb');
-
 const app = express();
+
+// enable cors and json parsing
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.'));
+app.use(express.static('.')); // serve your html file
 
-// --- MongoDB Connection ---
-const connectionString = process.env.ATLAS_URI; // Your connection string goes here
-const client = new MongoClient(connectionString);
+// in-memory storage (resets when server restarts)
+let chatUsers = {};
+let onlineUsers = {};
+let chatMessages = {};
+let dmMessages = {};
+let userColors = {};
+let chatRooms = {}; // <-- added this
+let roomMessages = {}; // <-- and this
 
-let db;
-
-async function connectToDb() {
-    try {
-        await client.connect();
-        console.log("Successfully connected to MongoDB Atlas!");
-        db = client.db("panthertalk"); // You can name your database anything
-    } catch (err) {
-        console.error("Could not connect to MongoDB Atlas", err);
-        process.exit(1);
-    }
-}
-
-connectToDb();
-
-// --- API Endpoints ---
-
-// Serve your html file at the root
+// serve your html file at the root
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/beta.html');
+    res.sendFile(__dirname + '/beta.html'); // updated to serve beta.html
 });
 
-// Get data from a MongoDB collection
-app.get('/api/data/:key', async (req, res) => {
-    try {
-        const collection = db.collection(req.params.key);
-        // Find the single document that holds all our data
-        const data = await collection.findOne({}) || {};
-        res.json(data);
-    } catch (err) {
-        res.status(500).json({});
+// get all data (replaces localStorage.getItem)
+app.get('/api/data/:key', (req, res) => {
+    const key = req.params.key;
+    
+    switch(key) {
+        case 'chatUsers':
+            res.json(chatUsers);
+            break;
+        case 'onlineUsers':
+            res.json(onlineUsers);
+            break;
+        case 'chatMessages':
+            res.json(chatMessages);
+            break;
+        case 'dmMessages':
+            res.json(dmMessages);
+            break;
+        case 'userColors':
+            res.json(userColors);
+            break;
+        case 'chatRooms': // <-- added this case
+            res.json(chatRooms);
+            break;
+        case 'roomMessages': // <-- and this one
+            res.json(roomMessages);
+            break;
+        default:
+            res.json({});
     }
 });
 
-// Save data to a MongoDB collection
-app.post('/api/data/:key', async (req, res) => {
-    try {
-        const collection = db.collection(req.params.key);
-        // Use "upsert" to either update the existing document or create it if it doesn't exist
-        await collection.updateOne({}, { $set: req.body }, { upsert: true });
-        res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ success: false });
+// save data (replaces localStorage.setItem)
+app.post('/api/data/:key', (req, res) => {
+    const key = req.params.key;
+    const data = req.body;
+    
+    switch(key) {
+        case 'chatUsers':
+            chatUsers = data;
+            break;
+        case 'onlineUsers':
+            onlineUsers = data;
+            break;
+        case 'chatMessages':
+            chatMessages = data;
+            break;
+        case 'dmMessages':
+            dmMessages = data;
+            break;
+        case 'userColors':
+            userColors = data;
+            break;
+        case 'chatRooms': // <-- added this case
+            chatRooms = data;
+            break;
+        case 'roomMessages': // <-- and this one
+            roomMessages = data;
+            break;
     }
+    
+    res.json({ success: true });
 });
 
-// --- Start Server ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`chat server running on port ${PORT}`);
