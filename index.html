@@ -270,15 +270,27 @@ body.geis-mode .profile-modal .profile-status {
         });
     }
 
-    // This function helps us update the Play/Pause button text
-    function onPlayerStateChange(event) {
-        const playPauseBtn = document.getElementById('playPauseBtn');
-        if (event.data === YT.PlayerState.PLAYING) {
-            playPauseBtn.textContent = 'pause song';
-        } else {
-            playPauseBtn.textContent = 'play song';
+// This function helps us update the Play/Pause button and now the song title
+function onPlayerStateChange(event) {
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const songTitleEl = document.getElementById('songTitle');
+
+    if (event.data === YT.PlayerState.PLAYING) {
+        playPauseBtn.textContent = 'pause song';
+    } else {
+        playPauseBtn.textContent = 'play song';
+    }
+
+    // --- NEW: When the video is loaded and ready, grab its title ---
+    if (event.data === YT.PlayerState.CUED) {
+        if (ytPlayer && typeof ytPlayer.getVideoData === 'function') {
+            const videoTitle = ytPlayer.getVideoData().title;
+            if (videoTitle) {
+                songTitleEl.textContent = videoTitle;
+            }
         }
     }
+}
     
     // NEW: Toggles the song playback
     function toggleSongPlayback() {
@@ -562,7 +574,7 @@ body.geis-mode .profile-modal .profile-status {
         if (ytPlayer && songId) {
             ytPlayer.loadVideoById(songId);
             ytPlayer.pauseVideo(); // Start paused
-            songTitleEl.textContent = `(loading song...)`; 
+            songTitleEl.textContent = `(no song set)`; 
             playPauseBtn.classList.remove('hidden');
         } else {
             songTitleEl.textContent = '(no song set)';
