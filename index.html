@@ -270,19 +270,25 @@ body.geis-mode .profile-modal .profile-status {
         });
     }
 
-// This function helps us update the Play/Pause button and now the song title
+// This function handles all player state changes
 function onPlayerStateChange(event) {
     const playPauseBtn = document.getElementById('playPauseBtn');
     const songTitleEl = document.getElementById('songTitle');
 
+    // Update the play/pause button text based on the state
     if (event.data === YT.PlayerState.PLAYING) {
         playPauseBtn.textContent = 'pause song';
     } else {
         playPauseBtn.textContent = 'play song';
     }
 
-    // --- NEW: When the video is loaded and ready, grab its title ---
-    if (event.data === YT.PlayerState.CUED) {
+    // --- NEW: More robust title fetching ---
+    // The video data is available in any of these states.
+    // We check if the title is still the default "loading" text before updating it.
+    if (
+        (event.data === YT.PlayerState.CUED || event.data === YT.PlayerState.PLAYING) &&
+        (songTitleEl.textContent === `(loading song...)`)
+    ) {
         if (ytPlayer && typeof ytPlayer.getVideoData === 'function') {
             const videoTitle = ytPlayer.getVideoData().title;
             if (videoTitle) {
