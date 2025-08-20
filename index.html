@@ -140,6 +140,36 @@
         body.dark-mode .message-actions span { color: #4da6ff; }
         body.geis-mode .message-actions span { color: #c8b6e6; }
         .edited-tag { font-size: 9px; color: #666; margin-left: 4px; }
+
+body.dark-mode .profile-modal {
+    background-color: #404040;
+    border-color: #555;
+    color: #e0e0e0;
+}
+body.dark-mode .profile-modal .profile-status {
+    background-color: #333;
+    border-color: #555;
+}
+
+body.sage-mode .profile-modal {
+    background-color: #5a6b68;
+    border-color: #6b7c79;
+    color: #e0f0f0;
+}
+body.sage-mode .profile-modal .profile-status {
+    background-color: #4a5b58;
+    border-color: #6b7c79;
+}
+
+body.geis-mode .profile-modal {
+    background-color: #4d3d69;
+    border-color: #3c3c3c;
+    color: #f0e6ff;
+}
+body.geis-mode .profile-modal .profile-status {
+    background-color: #3c354a;
+    border-color: #3c3c3c;
+}
     </style>
 </head>
 <body>
@@ -200,8 +230,10 @@
             <div id="profileStatus" class="profile-status"></div>
 
             <div id="profileSongContainer" class="profile-song">
-                <strong>song:</strong>
-                <div id="profileSong"></div>
+    <strong>song:</strong>
+    <div id="songTitle" style="font-style: italic; margin-bottom: 5px;">(no song set)</div>
+    <button id="playPauseBtn" class="hidden" onclick="toggleSongPlayback()">play/pause</button>
+    <div id="youtube-player" style="position: absolute; top: -9999px; left: -9999px;"></div>
             </div>
             
             <div style="clear:both; margin-top: 15px;">
@@ -219,321 +251,385 @@
         </div>
     </div>
 
+    <script src="https://www.youtube.com/iframe_api"></script>
     <script>
-        let currentUser = null;
-        let currentTab = 'main';
-        let dmTabs = ['main'];
+    let currentUser = null;
+    let currentTab = 'main';
+    let dmTabs = ['main'];
+    let ytPlayer; // <-- New variable for the YouTube player
 
-        function setTheme(theme) {
-            document.body.classList.remove('dark-mode', 'sage-mode', 'geis-mode');
-            if (theme === 'dark') document.body.classList.add('dark-mode');
-            else if (theme === 'sage') document.body.classList.add('sage-mode');
-            else if (theme === 'geis') document.body.classList.add('geis-mode');
-            if (currentUser) updateDMTabs();
-        }
-        
-        window.onload = function() {
-            loadMessages();
-            updateOnlineUsers();
-            updateDMTabs();
-            setInterval(pollForUpdates, 1000);
-        };
-        
-        async function getStoredData(key) {
-            try {
-                const response = await fetch(`/api/data/${key}`);
-                return await response.json();
-            } catch (error) { console.error('error getting data:', error); return {}; }
-        }
-        
-        async function setStoredData(key, data) {
-            try {
-                await fetch(`/api/data/${key}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-            } catch (error) { console.error('error saving data:', error); }
-        }
-        
-        async function login() {
-            const username = document.getElementById('usernameInput').value.trim();
-            const password = document.getElementById('passwordInput').value;
-            const loginStatus = document.getElementById('loginStatus');
-            if (!username || !password) {
-                loginStatus.innerHTML = '<span style="color: red;">please enter both username and password</span>'; return;
-            }
-            const users = await getStoredData('chatUsers');
-            const onlineUsers = await getStoredData('onlineUsers');
-            const userColors = await getStoredData('userColors');
-            const usernameLower = username.toLowerCase();
-            let actualUsername = username;
-            for (const existingUser in users) {
-                if (existingUser.toLowerCase() === usernameLower) { actualUsername = existingUser; break; }
-            }
-            if (users[actualUsername]) {
-                if (users[actualUsername] !== password) { loginStatus.innerHTML = '<span style="color: red;">incorrect password</span>'; return; }
-                if (onlineUsers[actualUsername]) { loginStatus.innerHTML = '<span style="color: red;">user already logged in</span>'; return; }
-            } else {
-                users[actualUsername] = password;
-                await setStoredData('chatUsers', users);
-            }
-            currentUser = actualUsername;
-            onlineUsers[actualUsername] = Date.now();
-            await setStoredData('onlineUsers', onlineUsers);
-            const savedColor = userColors[actualUsername] || '#000080';
-            document.getElementById('colorPicker').value = savedColor;
-            document.getElementById('loginForm').classList.add('hidden');
-            document.getElementById('chatInterface').classList.remove('hidden');
-            document.getElementById('userStatus').textContent = `logged in as: ${actualUsername}`;
-            loadMessages();
-            updateOnlineUsers();
-            document.getElementById('messageInput').focus();
-        }
-        
-        async function logout() {
-            if (currentUser) {
-                const onlineUsers = await getStoredData('onlineUsers');
-                delete onlineUsers[currentUser];
-                await setStoredData('onlineUsers', onlineUsers);
-                currentUser = null;
-            }
-            document.getElementById('loginForm').classList.remove('hidden');
-            document.getElementById('chatInterface').classList.add('hidden');
-            document.getElementById('usernameInput').value = '';
-            document.getElementById('passwordInput').value = '';
-            document.getElementById('loginStatus').innerHTML = '';
-        }
-        
-        async function sendMessage() {
-            if (!currentUser) return;
-            const messageInput = document.getElementById('messageInput');
-            const messageText = messageInput.value.trim();
-            if (!messageText) return;
-            const messageId = Date.now() + Math.random();
-            const message = { id: messageId, username: currentUser, text: messageText, timestamp: new Date().toISOString(), channel: currentTab };
-            if (currentTab === 'main') {
-                const messages = await getStoredData('chatMessages');
-                messages[messageId] = message;
-                await setStoredData('chatMessages', messages);
-            } else if (currentTab.startsWith('room-')) {
-                const roomMessages = await getStoredData('roomMessages');
-                if (!roomMessages[currentTab]) roomMessages[currentTab] = {};
-                roomMessages[currentTab][messageId] = message;
-                await setStoredData('roomMessages', roomMessages);
-            } else {
-                const dmMessages = await getStoredData('dmMessages');
-                if (!dmMessages[currentTab]) dmMessages[currentTab] = {};
-                dmMessages[currentTab][messageId] = message;
-                await setStoredData('dmMessages', dmMessages);
-            }
-            messageInput.value = '';
-            loadMessages();
-        }
-        
-        async function loadMessages() {
-            const userColors = await getStoredData('userColors');
-            const chatMessagesEl = document.getElementById('chatMessages');
-            let messages;
-            if (currentTab === 'main') messages = await getStoredData('chatMessages');
-            else if (currentTab.startsWith('room-')) {
-                const roomMessages = await getStoredData('roomMessages');
-                messages = roomMessages[currentTab] || {};
-            } else {
-                const dmMessages = await getStoredData('dmMessages');
-                messages = dmMessages[currentTab] || {};
-            }
-            const messageArray = Object.values(messages).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-            const recentMessages = messageArray.slice(-100);
-            const wasScrolledToBottom = chatMessagesEl.scrollHeight - chatMessagesEl.clientHeight <= chatMessagesEl.scrollTop + 1;
-            chatMessagesEl.innerHTML = '';
-            recentMessages.forEach(message => {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'message';
-                const messageDate = new Date(message.timestamp);
-                const time = messageDate.toLocaleTimeString();
-                const userColor = userColors[message.username] || '#000080';
-                let renderedText = escapeHtml(message.text);
-                const urlRegex = /(https?:\/\/[^\s]+)/g;
-                renderedText = renderedText.replace(urlRegex, url => {
-                    if (/\.(jpg|jpeg|png|gif)$/i.test(url)) return `<br><a href="${url}" target="_blank"><img src="${url}" alt="user image"></a>`;
-                    return `<a href="${url}" target="_blank">${url}</a>`;
-                });
-                let actionsHtml = '';
-                if (message.username === currentUser) {
-                    const escapedTextForPrompt = message.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    actionsHtml = `<div class="message-actions">
-                        <span onclick="showEditPrompt('${message.id}', '${message.channel}', '${escapedTextForPrompt}')">edit</span>
-                        <span onclick="deleteMessage('${message.id}', '${message.channel}')">delete</span>
-                    </div>`;
-                }
-                const editedTag = message.edited ? '<span class="edited-tag">(edited)</span>' : '';
-                messageDiv.innerHTML = `<span class="timestamp">[${time}]</span> 
-                    <span class="username" style="color: ${userColor};">${message.username}:</span> 
-                    ${renderedText} ${editedTag} ${actionsHtml}`;
-                chatMessagesEl.appendChild(messageDiv);
-            });
-            if (wasScrolledToBottom) chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
-        }
-
-        async function updateOnlineUsers() {
-            const onlineUsersData = await getStoredData('onlineUsers');
-            const onlineUsersList = document.getElementById('onlineUsersList');
-            const now = Date.now();
-            let changed = false;
-            for (const user in onlineUsersData) {
-                if (now - onlineUsersData[user] > 30000) { delete onlineUsersData[user]; changed = true; }
-            }
-            if (changed) await setStoredData('onlineUsers', onlineUsersData);
-            if (currentUser && onlineUsersData[currentUser]) {
-                onlineUsersData[currentUser] = now;
-                await setStoredData('onlineUsers', onlineUsersData);
-            }
-            const usernames = Object.keys(onlineUsersData);
-            if (usernames.length > 0) {
-                onlineUsersList.innerHTML = usernames.map(username => `<div class="user-item" onclick="showProfile('${username}')">${username}</div>`).join('');
-            } else { onlineUsersList.textContent = 'none'; }
-        }
-        
-        function pollForUpdates() { if (currentUser) { loadMessages(); updateOnlineUsers(); } }
-        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
-        
-        async function updateUserColor() {
-            if (!currentUser) return;
-            const colorPicker = document.getElementById('colorPicker');
-            const userColors = await getStoredData('userColors');
-            userColors[currentUser] = colorPicker.value;
-            await setStoredData('userColors', userColors);
-            loadMessages();
-        }
-        
-        function startDM(otherUser) {
-            const dmKey = createDMKey(currentUser, otherUser);
-            if (!dmTabs.includes(dmKey)) { dmTabs.push(dmKey); updateDMTabs(); }
-            switchToTab(dmKey);
-        }
-        
-        function createDMKey(user1, user2) { return [user1, user2].sort().join('-'); }
-        
-        function switchToTab(tabName) {
-            currentTab = tabName;
-            document.querySelectorAll('.dm-tab').forEach(tab => tab.classList.remove('active'));
-            const activeTab = document.querySelector(`[onclick="switchToTab('${tabName}')"]`);
-            if (activeTab) activeTab.classList.add('active');
-            const messageInput = document.getElementById('messageInput');
-            if (tabName === 'main') messageInput.placeholder = 'type your message...';
-            else if (tabName.startsWith('room-')) messageInput.placeholder = `message in ${tabName.replace('room-', '')}...`;
-            else messageInput.placeholder = `dm to ${tabName.split('-').find(u => u !== currentUser)}...`;
-            loadMessages();
-        }
-        
-        function updateDMTabs() {
-            const dmTabsContainer = document.getElementById('dmTabs');
-            dmTabsContainer.innerHTML = dmTabs.map(tab => {
-                if (tab === 'main') return `<div class="dm-tab ${currentTab === 'main' ? 'active' : ''}" onclick="switchToTab('main')">main chat</div>`;
-                if (tab.startsWith('room-')) return `<div class="dm-tab room-tab ${currentTab === tab ? 'active' : ''}" onclick="switchToTab('${tab}')">room: ${tab.replace('room-', '')}</div>`;
-                return `<div class="dm-tab ${currentTab === tab ? 'active' : ''}" onclick="switchToTab('${tab}')">dm: ${tab.split('-').find(u => u !== currentUser)}</div>`;
-            }).join('');
-        }
-        
-        document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                if (e.target.id === 'messageInput') sendMessage();
-                else if (e.target.id === 'passwordInput' || e.target.id === 'usernameInput') login();
-                else if (e.target.id === 'roomNameInput') joinOrCreateRoom();
+    // --- NEW: YouTube IFrame API Setup ---
+    // This function is called automatically by the YouTube script when it's ready
+    function onYouTubeIframeAPIReady() {
+        ytPlayer = new YT.Player('youtube-player', {
+            height: '0',
+            width: '0',
+            events: {
+                'onStateChange': onPlayerStateChange
             }
         });
-        
-        async function joinOrCreateRoom() {
-            const roomNameInput = document.getElementById('roomNameInput');
-            const roomName = roomNameInput.value.trim().toLowerCase();
-            if (!roomName || !currentUser) return;
-            if (!/^[a-z0-9_-]+$/.test(roomName)) { alert('room names can only contain letters, numbers, _ and -'); return; }
-            const rooms = await getStoredData('chatRooms');
-            const roomKey = `room-${roomName}`;
-            if (!rooms[roomName]) {
-                rooms[roomName] = { name: roomName, creator: currentUser, created: Date.now() };
-                await setStoredData('chatRooms', rooms);
-            }
-            if (!dmTabs.includes(roomKey)) { dmTabs.push(roomKey); updateDMTabs(); }
-            roomNameInput.value = '';
-            switchToTab(roomKey);
-        }
-        
-        window.addEventListener('beforeunload', async function() {
-            if (currentUser) {
-                const onlineUsers = await getStoredData('onlineUsers');
-                delete onlineUsers[currentUser];
-                await setStoredData('onlineUsers', onlineUsers);
-            }
-        });
+    }
 
-        async function showProfile(username) {
-            const profiles = await getStoredData('userProfiles');
-            const userProfile = profiles[username] || {};
-            document.getElementById('profileUsername').textContent = username;
-            const profilePic = document.getElementById('profilePic');
-            profilePic.src = userProfile.picUrl || 'https://i.imgur.com/6b6Xq8B.png';
-            profilePic.onerror = () => { profilePic.src = 'https://i.imgur.com/6b6Xq8B.png'; };
-            document.getElementById('profileStatus').textContent = userProfile.status || '(no status set)';
-            const songContainer = document.getElementById('profileSong');
-            if (userProfile.songUrl && userProfile.songUrl.includes('youtube.com/watch?v=')) {
-                const videoId = userProfile.songUrl.split('v=')[1].split('&')[0];
-                if (videoId) songContainer.innerHTML = `<iframe width="250" height="150" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
-                else songContainer.innerHTML = '(invalid youtube link)';
-            } else { songContainer.innerHTML = '(no song set)'; }
-            document.getElementById('profileDmBtn').onclick = () => { startDM(username); closeProfile(); };
-            if (username === currentUser) {
-                document.getElementById('profileEditFields').classList.remove('hidden');
-                document.getElementById('editPicUrl').value = userProfile.picUrl || '';
-                document.getElementById('editSongUrl').value = userProfile.songUrl || '';
-                document.getElementById('editStatus').value = userProfile.status || '';
-            } else { document.getElementById('profileEditFields').classList.add('hidden'); }
-            document.getElementById('profileModalBackdrop').classList.remove('hidden');
+    // This function helps us update the Play/Pause button text
+    function onPlayerStateChange(event) {
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        if (event.data === YT.PlayerState.PLAYING) {
+            playPauseBtn.textContent = 'pause song';
+        } else {
+            playPauseBtn.textContent = 'play song';
         }
+    }
+    
+    // NEW: Toggles the song playback
+    function toggleSongPlayback() {
+        if (!ytPlayer || typeof ytPlayer.getPlayerState !== 'function') return;
 
-        function closeProfile() {
-            document.getElementById('profileSong').innerHTML = '';
-            document.getElementById('profileModalBackdrop').classList.add('hidden');
+        const playerState = ytPlayer.getPlayerState();
+        if (playerState === YT.PlayerState.PLAYING) {
+            ytPlayer.pauseVideo();
+        } else {
+            ytPlayer.playVideo();
         }
+    }
 
-        async function saveProfile() {
-            const profiles = await getStoredData('userProfiles');
-            profiles[currentUser] = {
-                picUrl: document.getElementById('editPicUrl').value.trim(),
-                songUrl: document.getElementById('editSongUrl').value.trim(),
-                status: document.getElementById('editStatus').value.trim()
-            };
-            await setStoredData('userProfiles', profiles);
-            closeProfile();
-        }
-        
-        function showEditPrompt(messageId, channel, currentText) {
-            const newText = prompt("edit your message:", currentText.replace(/ \(edited\)$/, ''));
-            if (newText !== null && newText.trim() !== "") {
-                editMessage(messageId, channel, newText.trim());
-            }
-        }
+    // NEW: Helper to get a video ID from a full URL
+    function extractYouTubeID(url) {
+        if (!url) return null;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
+    }
 
-        async function editMessage(messageId, channel, newText) {
-            await fetch('/api/editMessage', {
+    // --- (Your other functions like setTheme, login, etc., are below, with small modifications) ---
+    function setTheme(theme) {
+        document.body.classList.remove('dark-mode', 'sage-mode', 'geis-mode');
+        if (theme === 'dark') document.body.classList.add('dark-mode');
+        else if (theme === 'sage') document.body.classList.add('sage-mode');
+        else if (theme === 'geis') document.body.classList.add('geis-mode');
+        if (currentUser) updateDMTabs();
+    }
+    
+    window.onload = function() {
+        loadMessages();
+        updateOnlineUsers();
+        updateDMTabs();
+        setInterval(pollForUpdates, 1000);
+    };
+    
+    async function getStoredData(key) {
+        try {
+            const response = await fetch(`/api/data/${key}`);
+            return await response.json();
+        } catch (error) { console.error('error getting data:', error); return {}; }
+    }
+    
+    async function setStoredData(key, data) {
+        try {
+            await fetch(`/api/data/${key}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messageId, channel, newText, username: currentUser })
+                body: JSON.stringify(data)
+            });
+        } catch (error) { console.error('error saving data:', error); }
+    }
+    
+    async function login() {
+        const username = document.getElementById('usernameInput').value.trim();
+        const password = document.getElementById('passwordInput').value;
+        const loginStatus = document.getElementById('loginStatus');
+        if (!username || !password) {
+            loginStatus.innerHTML = '<span style="color: red;">please enter both username and password</span>'; return;
+        }
+        const users = await getStoredData('chatUsers');
+        const onlineUsers = await getStoredData('onlineUsers');
+        const userColors = await getStoredData('userColors');
+        const usernameLower = username.toLowerCase();
+        let actualUsername = username;
+        for (const existingUser in users) {
+            if (existingUser.toLowerCase() === usernameLower) { actualUsername = existingUser; break; }
+        }
+        if (users[actualUsername]) {
+            if (users[actualUsername] !== password) { loginStatus.innerHTML = '<span style="color: red;">incorrect password</span>'; return; }
+            if (onlineUsers[actualUsername]) { loginStatus.innerHTML = '<span style="color: red;">user already logged in</span>'; return; }
+        } else {
+            users[actualUsername] = password;
+            await setStoredData('chatUsers', users);
+        }
+        currentUser = actualUsername;
+        onlineUsers[actualUsername] = Date.now();
+        await setStoredData('onlineUsers', onlineUsers);
+        const savedColor = userColors[actualUsername] || '#000080';
+        document.getElementById('colorPicker').value = savedColor;
+        document.getElementById('loginForm').classList.add('hidden');
+        document.getElementById('chatInterface').classList.remove('hidden');
+        document.getElementById('userStatus').textContent = `logged in as: ${actualUsername}`;
+        loadMessages();
+        updateOnlineUsers();
+        document.getElementById('messageInput').focus();
+    }
+    
+    async function logout() {
+        if (currentUser) {
+            const onlineUsers = await getStoredData('onlineUsers');
+            delete onlineUsers[currentUser];
+            await setStoredData('onlineUsers', onlineUsers);
+            currentUser = null;
+        }
+        document.getElementById('loginForm').classList.remove('hidden');
+        document.getElementById('chatInterface').classList.add('hidden');
+        document.getElementById('usernameInput').value = '';
+        document.getElementById('passwordInput').value = '';
+        document.getElementById('loginStatus').innerHTML = '';
+    }
+    
+    async function sendMessage() {
+        if (!currentUser) return;
+        const messageInput = document.getElementById('messageInput');
+        const messageText = messageInput.value.trim();
+        if (!messageText) return;
+        const messageId = Date.now() + Math.random();
+        const message = { id: messageId, username: currentUser, text: messageText, timestamp: new Date().toISOString(), channel: currentTab };
+        if (currentTab === 'main') {
+            const messages = await getStoredData('chatMessages');
+            messages[messageId] = message;
+            await setStoredData('chatMessages', messages);
+        } else if (currentTab.startsWith('room-')) {
+            const roomMessages = await getStoredData('roomMessages');
+            if (!roomMessages[currentTab]) roomMessages[currentTab] = {};
+            roomMessages[currentTab][messageId] = message;
+            await setStoredData('roomMessages', roomMessages);
+        } else {
+            const dmMessages = await getStoredData('dmMessages');
+            if (!dmMessages[currentTab]) dmMessages[currentTab] = {};
+            dmMessages[currentTab][messageId] = message;
+            await setStoredData('dmMessages', dmMessages);
+        }
+        messageInput.value = '';
+        loadMessages();
+    }
+    
+    async function loadMessages() {
+        const userColors = await getStoredData('userColors');
+        const chatMessagesEl = document.getElementById('chatMessages');
+        let messages;
+        if (currentTab === 'main') messages = await getStoredData('chatMessages');
+        else if (currentTab.startsWith('room-')) {
+            const roomMessages = await getStoredData('roomMessages');
+            messages = roomMessages[currentTab] || {};
+        } else {
+            const dmMessages = await getStoredData('dmMessages');
+            messages = dmMessages[currentTab] || {};
+        }
+        const messageArray = Object.values(messages).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        const recentMessages = messageArray.slice(-100);
+        const wasScrolledToBottom = chatMessagesEl.scrollHeight - chatMessagesEl.clientHeight <= chatMessagesEl.scrollTop + 1;
+        chatMessagesEl.innerHTML = '';
+        recentMessages.forEach(message => {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            const messageDate = new Date(message.timestamp);
+            const time = messageDate.toLocaleTimeString();
+            const userColor = userColors[message.username] || '#000080';
+            let renderedText = escapeHtml(message.text);
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            renderedText = renderedText.replace(urlRegex, url => {
+                if (/\.(jpg|jpeg|png|gif)$/i.test(url)) return `<br><a href="${url}" target="_blank"><img src="${url}" alt="user image"></a>`;
+                return `<a href="${url}" target="_blank">${url}</a>`;
+            });
+            let actionsHtml = '';
+            if (message.username === currentUser) {
+                const escapedTextForPrompt = message.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                actionsHtml = `<div class="message-actions">
+                    <span onclick="showEditPrompt('${message.id}', '${message.channel}', '${escapedTextForPrompt}')">edit</span>
+                    <span onclick="deleteMessage('${message.id}', '${message.channel}')">delete</span>
+                </div>`;
+            }
+            const editedTag = message.edited ? '<span class="edited-tag">(edited)</span>' : '';
+            messageDiv.innerHTML = `<span class="timestamp">[${time}]</span> 
+                <span class="username" style="color: ${userColor};">${message.username}:</span> 
+                ${renderedText} ${editedTag} ${actionsHtml}`;
+            chatMessagesEl.appendChild(messageDiv);
+        });
+        if (wasScrolledToBottom) chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+    }
+
+    async function updateOnlineUsers() {
+        const onlineUsersData = await getStoredData('onlineUsers');
+        const onlineUsersList = document.getElementById('onlineUsersList');
+        const now = Date.now();
+        let changed = false;
+        for (const user in onlineUsersData) {
+            if (now - onlineUsersData[user] > 30000) { delete onlineUsersData[user]; changed = true; }
+        }
+        if (changed) await setStoredData('onlineUsers', onlineUsersData);
+        if (currentUser && onlineUsersData[currentUser]) {
+            onlineUsersData[currentUser] = Date.now();
+            await setStoredData('onlineUsers', onlineUsersData);
+        }
+        const usernames = Object.keys(onlineUsersData);
+        if (usernames.length > 0) {
+            onlineUsersList.innerHTML = usernames.map(username => `<div class="user-item" onclick="showProfile('${username}')">${username}</div>`).join('');
+        } else { onlineUsersList.textContent = 'none'; }
+    }
+    
+    function pollForUpdates() { if (currentUser) { loadMessages(); updateOnlineUsers(); } }
+    function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+    
+    async function updateUserColor() {
+        if (!currentUser) return;
+        const colorPicker = document.getElementById('colorPicker');
+        const userColors = await getStoredData('userColors');
+        userColors[currentUser] = colorPicker.value;
+        await setStoredData('userColors', userColors);
+        loadMessages();
+    }
+    
+    function startDM(otherUser) {
+        const dmKey = createDMKey(currentUser, otherUser);
+        if (!dmTabs.includes(dmKey)) { dmTabs.push(dmKey); updateDMTabs(); }
+        switchToTab(dmKey);
+    }
+    
+    function createDMKey(user1, user2) { return [user1, user2].sort().join('-'); }
+    
+    function switchToTab(tabName) {
+        currentTab = tabName;
+        document.querySelectorAll('.dm-tab').forEach(tab => tab.classList.remove('active'));
+        const activeTab = document.querySelector(`[onclick="switchToTab('${tabName}')"]`);
+        if (activeTab) activeTab.classList.add('active');
+        const messageInput = document.getElementById('messageInput');
+        if (tabName === 'main') messageInput.placeholder = 'type your message...';
+        else if (tabName.startsWith('room-')) messageInput.placeholder = `message in ${tabName.replace('room-', '')}...`;
+        else messageInput.placeholder = `dm to ${tabName.split('-').find(u => u !== currentUser)}...`;
+        loadMessages();
+    }
+    
+    function updateDMTabs() {
+        const dmTabsContainer = document.getElementById('dmTabs');
+        dmTabsContainer.innerHTML = dmTabs.map(tab => {
+            if (tab === 'main') return `<div class="dm-tab ${currentTab === 'main' ? 'active' : ''}" onclick="switchToTab('main')">main chat</div>`;
+            if (tab.startsWith('room-')) return `<div class="dm-tab room-tab ${currentTab === tab ? 'active' : ''}" onclick="switchToTab('${tab}')">room: ${tab.replace('room-', '')}</div>`;
+            return `<div class="dm-tab ${currentTab === tab ? 'active' : ''}" onclick="switchToTab('${tab}')">dm: ${tab.split('-').find(u => u !== currentUser)}</div>`;
+        }).join('');
+    }
+    
+    document.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            if (e.target.id === 'messageInput') sendMessage();
+            else if (e.target.id === 'passwordInput' || e.target.id === 'usernameInput') login();
+            else if (e.target.id === 'roomNameInput') joinOrCreateRoom();
+        }
+    });
+    
+    async function joinOrCreateRoom() {
+        const roomNameInput = document.getElementById('roomNameInput');
+        const roomName = roomNameInput.value.trim().toLowerCase();
+        if (!roomName || !currentUser) return;
+        if (!/^[a-z0-9_-]+$/.test(roomName)) { alert('room names can only contain letters, numbers, _ and -'); return; }
+        const rooms = await getStoredData('chatRooms');
+        const roomKey = `room-${roomName}`;
+        if (!rooms[roomName]) {
+            rooms[roomName] = { name: roomName, creator: currentUser, created: Date.now() };
+            await setStoredData('chatRooms', rooms);
+        }
+        if (!dmTabs.includes(roomKey)) { dmTabs.push(roomKey); updateDMTabs(); }
+        roomNameInput.value = '';
+        switchToTab(roomKey);
+    }
+    
+    window.addEventListener('beforeunload', async function() {
+        if (currentUser) {
+            const onlineUsers = await getStoredData('onlineUsers');
+            delete onlineUsers[currentUser];
+            await setStoredData('onlineUsers', onlineUsers);
+        }
+    });
+
+    async function showProfile(username) {
+        const profiles = await getStoredData('userProfiles');
+        const userProfile = profiles[username] || {};
+        document.getElementById('profileUsername').textContent = username;
+        const profilePic = document.getElementById('profilePic');
+        profilePic.src = userProfile.picUrl || 'https://i.imgur.com/6b6Xq8B.png';
+        profilePic.onerror = () => { profilePic.src = 'https://i.imgur.com/6b6Xq8B.png'; };
+        document.getElementById('profileStatus').textContent = userProfile.status || '(no status set)';
+        
+        // MODIFIED: Handle song ID and button
+        const songTitleEl = document.getElementById('songTitle');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const songId = userProfile.songId;
+
+        if (ytPlayer && songId) {
+            ytPlayer.loadVideoById(songId);
+            ytPlayer.pauseVideo(); // Start paused
+            songTitleEl.textContent = `(loading song...)`; 
+            playPauseBtn.classList.remove('hidden');
+        } else {
+            songTitleEl.textContent = '(no song set)';
+            playPauseBtn.classList.add('hidden');
+        }
+
+        document.getElementById('profileDmBtn').onclick = () => { startDM(username); closeProfile(); };
+        if (username === currentUser) {
+            document.getElementById('profileEditFields').classList.remove('hidden');
+            document.getElementById('editPicUrl').value = userProfile.picUrl || '';
+            document.getElementById('editSongUrl').value = userProfile.songUrl || '';
+            document.getElementById('editStatus').value = userProfile.status || '';
+        } else {
+            document.getElementById('profileEditFields').classList.add('hidden');
+        }
+        document.getElementById('profileModalBackdrop').classList.remove('hidden');
+    }
+
+    function closeProfile() {
+        // MODIFIED: Stop video playback
+        if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
+            ytPlayer.stopVideo();
+        }
+        document.getElementById('profileModalBackdrop').classList.add('hidden');
+    }
+
+    async function saveProfile() {
+        const profiles = await getStoredData('userProfiles');
+        const songUrl = document.getElementById('editSongUrl').value.trim();
+        const songId = extractYouTubeID(songUrl);
+
+        profiles[currentUser] = {
+            picUrl: document.getElementById('editPicUrl').value.trim(),
+            songUrl: songUrl,
+            songId: songId, // <-- Store the extracted ID
+            status: document.getElementById('editStatus').value.trim()
+        };
+        await setStoredData('userProfiles', profiles);
+        closeProfile();
+    }
+    
+    function showEditPrompt(messageId, channel, currentText) {
+        const newText = prompt("edit your message:", currentText);
+        if (newText !== null && newText.trim() !== "" && newText.trim() !== currentText) {
+            editMessage(messageId, channel, newText.trim());
+        }
+    }
+
+    async function editMessage(messageId, channel, newText) {
+        await fetch('/api/editMessage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messageId, channel, newText, username: currentUser })
+        });
+        loadMessages();
+    }
+
+    async function deleteMessage(messageId, channel) {
+        if (confirm("are you sure you want to delete this message?")) {
+            await fetch('/api/deleteMessage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messageId, channel, username: currentUser })
             });
             loadMessages();
         }
-
-        async function deleteMessage(messageId, channel) {
-            if (confirm("are you sure you want to delete this message?")) {
-                await fetch('/api/deleteMessage', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ messageId, channel, username: currentUser })
-                });
-                loadMessages();
-            }
-        }
-    </script>
+    }
+</script>
 </body>
 </html>
