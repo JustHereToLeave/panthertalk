@@ -26,6 +26,7 @@
             border: 2px inset #c0c0c0;
             padding: 10px;
             transition: all 0.3s ease;
+            position: relative;
         }
         
         body.dark-mode .container { background-color: #404040; border: 2px inset #555; color: #e0e0e0; }
@@ -51,7 +52,7 @@
         body.geis-mode .chat-messages { background-color: #3c354a; border: 2px inset #3c3c3c; color: #f0e6ff; }
         body.coen-mode .chat-messages { background-color: #003336; border: 2px inset #005f63; color: #d4ffff; }
 
-        .message { margin-bottom: 5px; word-wrap: break-word; }
+        .message { margin-bottom: 5px; word-wrap: break-word; padding: 2px; }
         .timestamp { color: #666; font-size: 10px; }
         .username { font-weight: bold; color: #000080; }
         
@@ -130,8 +131,9 @@
         body.geis-mode .status { color: #c8b6e6; }
         body.coen-mode .status { color: #00e0e7; }
         
-        .rules-btn-container { position: absolute; top: 20px; left: 20px; }
-        .theme-switcher { position: absolute; top: 20px; right: 20px; }
+        .header-buttons { position: absolute; top: 10px; left: 10px; right: 10px; z-index: 10; }
+        .theme-switcher { float: right; }
+        .rules-btn-container { float: left; }
         .theme-btn { padding: 3px 8px; margin: 2px; font-size: 10px; }
         .hidden { display: none !important; }
         
@@ -142,8 +144,8 @@
         body.coen-mode .room-tab { background-color: #007c81; }
 
         .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .profile-modal, .rules-modal { background-color: #c0c0c0; border: 2px outset #c0c0c0; width: 400px; padding: 15px; }
-        .profile-modal h3, .rules-modal h3 { margin-top: 0; border-bottom: 2px inset #c0c0c0; padding-bottom: 5px; }
+        .profile-modal, .rules-modal, .pins-modal { background-color: #c0c0c0; border: 2px outset #c0c0c0; width: 400px; padding: 15px; }
+        .profile-modal h3, .rules-modal h3, .pins-modal h3 { margin-top: 0; border-bottom: 2px inset #c0c0c0; padding-bottom: 5px; }
         .profile-modal .profile-pic { max-width: 100px; max-height: 100px; border: 2px inset #c0c0c0; margin-right: 15px; float: left; }
         .profile-modal .profile-status { font-style: italic; margin: 10px 0; padding: 5px; background: white; border: 2px inset #c0c0c0; min-height: 20px; }
         .profile-modal .profile-song { margin-top: 10px; }
@@ -153,23 +155,44 @@
         .rules-modal ol { padding-left: 20px; }
         .rules-modal li { margin-bottom: 10px; }
 
-        body.dark-mode .profile-modal, body.dark-mode .rules-modal { background-color: #404040; border-color: #555; color: #e0e0e0; }
+        body.dark-mode .profile-modal, body.dark-mode .rules-modal, body.dark-mode .pins-modal { background-color: #404040; border-color: #555; color: #e0e0e0; }
         body.dark-mode .profile-modal .profile-status { background-color: #333; border-color: #555; }
-        body.sage-mode .profile-modal, body.sage-mode .rules-modal { background-color: #5a6b68; border-color: #6b7c79; color: #e0f0f0; }
+        body.sage-mode .profile-modal, body.sage-mode .rules-modal, body.sage-mode .pins-modal { background-color: #5a6b68; border-color: #6b7c79; color: #e0f0f0; }
         body.sage-mode .profile-modal .profile-status { background-color: #4a5b58; border-color: #6b7c79; }
-        body.geis-mode .profile-modal, body.geis-mode .rules-modal { background-color: #4d3d69; border-color: #3c3c3c; color: #f0e6ff; }
+        body.geis-mode .profile-modal, body.geis-mode .rules-modal, body.geis-mode .pins-modal { background-color: #4d3d69; border-color: #3c3c3c; color: #f0e6ff; }
         body.geis-mode .profile-modal .profile-status { background-color: #3c354a; border-color: #3c3c3c; }
-        body.coen-mode .profile-modal, body.coen-mode .rules-modal { background-color: #004447; border-color: #005f63; color: #d4ffff; }
+        body.coen-mode .profile-modal, body.coen-mode .rules-modal, body.coen-mode .pins-modal { background-color: #004447; border-color: #005f63; color: #d4ffff; }
         body.coen-mode .profile-modal .profile-status { background-color: #003336; border-color: #005f63; }
         
         .chat-messages img { max-width: 200px; max-height: 200px; display: block; border: 2px inset #c0c0c0; margin-top: 5px; }
         .message-actions { display: inline-block; margin-left: 10px; font-size: 10px; opacity: 0; transition: opacity 0.2s ease; }
         .message:hover .message-actions { opacity: 1; }
-        .message-actions span { cursor: pointer; text-decoration: underline; color: #000080; }
+        .message-actions span { cursor: pointer; text-decoration: underline; margin-right: 5px; color: #000080; }
         body.dark-mode .message-actions span { color: #4da6ff; }
         body.geis-mode .message-actions span { color: #c8b6e6; }
         body.coen-mode .message-actions span { color: #00e0e7; }
         .edited-tag { font-size: 9px; color: #666; margin-left: 4px; }
+        
+        .reply-preview { background: #e0e0e0; border: 2px inset #c0c0c0; padding: 5px; margin-bottom: 5px; font-size: 11px; }
+        body.dark-mode .reply-preview { background-color: #505050; border-color: #555; }
+        body.geis-mode .reply-preview { background-color: #5d4d79; border-color: #3c3c3c; }
+        body.coen-mode .reply-preview { background-color: #005f63; border-color: #007c81; }
+        .reply-preview-text { font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; max-width: 80%; }
+        .cancel-reply { float: right; cursor: pointer; font-weight: bold; }
+
+        .message-reply-snippet { font-size: 10px; color: #666; border-left: 2px solid #ccc; padding-left: 8px; margin-bottom: 4px; cursor: pointer; }
+        .message-reply-snippet:hover { border-left-color: #000080; }
+        
+        .channel-header { display: flex; justify-content: space-between; align-items: center; padding: 0 5px; margin-bottom: 5px; }
+        .pins-btn { padding: 3px 8px; font-size: 10px; }
+        .pins-modal .pinned-message-item { border-bottom: 2px inset #c0c0c0; padding: 8px; margin-bottom: 8px; }
+        .pins-modal .pinned-message-item:last-child { border-bottom: none; margin-bottom: 0; }
+        .pins-modal .pinned-info { font-size: 10px; color: #666; margin-bottom: 4px; }
+        .pins-modal .pinned-text { font-size: 12px; }
+        body.dark-mode .pins-modal .pinned-message-item { border-color: #555; }
+        body.sage-mode .pins-modal .pinned-message-item { border-color: #6b7c79; }
+        body.geis-mode .pins-modal .pinned-message-item { border-color: #3c3c3c; }
+        body.coen-mode .pins-modal .pinned-message-item { border-color: #005f63; }
     </style>
 </head>
 <body>
@@ -210,7 +233,16 @@
             <div class="dm-tabs" id="dmTabs">
                 <div class="dm-tab active" onclick="switchToTab('main')">main chat</div>
             </div>
+            
+            <div class="channel-header">
+                <span id="channelTitle" style="font-weight: bold;">main chat</span>
+                <button id="pinsBtn" class="pins-btn" onclick="showPins()">📌 pins (0)</button>
+            </div>
+            
             <div class="chat-messages" id="chatMessages"></div>
+            
+            <div id="replyPreview" class="reply-preview hidden"></div>
+
             <div>
                 <input type="text" id="messageInput" placeholder="type your message..." style="width: 60%;">
                 <input type="color" id="colorPicker" value="#000080" onchange="updateUserColor()" title="pick your username color">
@@ -258,37 +290,39 @@
         </div>
     </div>
 
+    <div id="pinsModalBackdrop" class="modal-backdrop hidden">
+        <div class="rules-modal pins-modal">
+            <h3>pinned messages</h3>
+            <div id="pinsList" style="max-height: 400px; overflow-y: auto; min-height: 50px;"></div>
+            <button onclick="closePins()">close</button>
+        </div>
+    </div>
+
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         let currentUser = null;
         let currentTab = 'main';
         let dmTabs = ['main'];
         let ytPlayer;
+        let replyingTo = null;
+        let currentMessages = {}; // Local cache for the current channel's messages
 
         function onYouTubeIframeAPIReady() {
             ytPlayer = new YT.Player('youtube-player', {
-                height: '0', width: '0',
-                events: { 'onStateChange': onPlayerStateChange }
+                height: '0', width: '0', events: { 'onStateChange': onPlayerStateChange }
             });
         }
 
         function onPlayerStateChange(event) {
-            const playPauseBtn = document.getElementById('playPauseBtn');
-            if (event.data === YT.PlayerState.PLAYING) {
-                playPauseBtn.textContent = 'pause song';
-            } else {
-                playPauseBtn.textContent = 'play song';
-            }
+            const btn = document.getElementById('playPauseBtn');
+            btn.textContent = event.data === YT.PlayerState.PLAYING ? 'pause song' : 'play song';
         }
         
         function toggleSongPlayback() {
             if (!ytPlayer || typeof ytPlayer.getPlayerState !== 'function') return;
-            const playerState = ytPlayer.getPlayerState();
-            if (playerState === YT.PlayerState.PLAYING) {
-                ytPlayer.pauseVideo();
-            } else {
-                ytPlayer.playVideo();
-            }
+            const state = ytPlayer.getPlayerState();
+            if (state === YT.PlayerState.PLAYING) ytPlayer.pauseVideo();
+            else ytPlayer.playVideo();
         }
 
         function extractYouTubeID(url) {
@@ -302,22 +336,18 @@
 
         function setTheme(theme) {
             document.body.classList.remove('dark-mode', 'sage-mode', 'geis-mode', 'coen-mode');
-            if (theme === 'dark') document.body.classList.add('dark-mode');
-            else if (theme === 'sage') document.body.classList.add('sage-mode');
-            else if (theme === 'geis') document.body.classList.add('geis-mode');
-            else if (theme === 'coen') document.body.classList.add('coen-mode');
+            if (theme !== 'light') document.body.classList.add(`${theme}-mode`);
             if (currentUser) updateDMTabs();
         }
         
         window.onload = function() {
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(() => console.log('service worker registered'))
-                    .catch(err => console.log('service worker not registered', err));
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('sw not registered', err));
             }
             loadMessages();
             updateOnlineUsers();
             updateDMTabs();
+            updatePinsButton();
             setInterval(pollForUpdates, 1000);
         };
         
@@ -330,11 +360,7 @@
         
         async function setStoredData(key, data) {
             try {
-                await fetch(`/api/data/${key}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
+                await fetch(`/api/data/${key}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
             } catch (error) { console.error('error saving data:', error); }
         }
         
@@ -361,8 +387,7 @@
             currentUser = actualUsername;
             onlineUsers[actualUsername] = Date.now();
             await setStoredData('onlineUsers', onlineUsers);
-            const savedColor = userColors[actualUsername] || '#000080';
-            document.getElementById('colorPicker').value = savedColor;
+            document.getElementById('colorPicker').value = userColors[actualUsername] || '#000080';
             document.getElementById('loginForm').classList.add('hidden');
             document.getElementById('chatInterface').classList.remove('hidden');
             document.getElementById('userStatus').textContent = `logged in as: ${actualUsername}`;
@@ -380,9 +405,6 @@
             }
             document.getElementById('loginForm').classList.remove('hidden');
             document.getElementById('chatInterface').classList.add('hidden');
-            document.getElementById('usernameInput').value = '';
-            document.getElementById('passwordInput').value = '';
-            document.getElementById('loginStatus').innerHTML = '';
         }
         
         async function sendMessage() {
@@ -390,12 +412,32 @@
             const messageInput = document.getElementById('messageInput');
             const messageText = messageInput.value.trim();
             if (!messageText) return;
-            const messageId = Date.now() + Math.random();
-            const message = { id: messageId, username: currentUser, text: messageText, timestamp: new Date().toISOString(), channel: currentTab };
+
+            const messageId = (Date.now() + Math.random()).toString();
+            const message = { 
+                id: messageId, 
+                username: currentUser, 
+                text: messageText, 
+                timestamp: new Date().toISOString(), 
+                channel: currentTab,
+            };
+
+            if (replyingTo) {
+                const originalMessage = currentMessages[replyingTo];
+                if (originalMessage) {
+                    message.replyingTo = {
+                        id: originalMessage.id,
+                        username: originalMessage.username,
+                        text: originalMessage.text
+                    };
+                }
+            }
+            
+            let messageLog;
             if (currentTab === 'main') {
-                const messages = await getStoredData('chatMessages');
-                messages[messageId] = message;
-                await setStoredData('chatMessages', messages);
+                messageLog = await getStoredData('chatMessages');
+                messageLog[messageId] = message;
+                await setStoredData('chatMessages', messageLog);
             } else if (currentTab.startsWith('room-')) {
                 const roomMessages = await getStoredData('roomMessages');
                 if (!roomMessages[currentTab]) roomMessages[currentTab] = {};
@@ -407,7 +449,9 @@
                 dmMessages[currentTab][messageId] = message;
                 await setStoredData('dmMessages', dmMessages);
             }
+            
             messageInput.value = '';
+            cancelReply();
             loadMessages();
         }
         
@@ -423,15 +467,20 @@
                 const dmMessages = await getStoredData('dmMessages');
                 messages = dmMessages[currentTab] || {};
             }
+            currentMessages = messages; // Update the local cache
+            
             const messageArray = Object.values(messages).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
             const recentMessages = messageArray.slice(-100);
             const wasScrolledToBottom = chatMessagesEl.scrollHeight - chatMessagesEl.clientHeight <= chatMessagesEl.scrollTop + 1;
             chatMessagesEl.innerHTML = '';
+            const pinnedMessages = await getStoredData('pinnedMessages');
+            const pinnedIds = pinnedMessages[currentTab] || [];
+
             recentMessages.forEach(message => {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = 'message';
-                const messageDate = new Date(message.timestamp);
-                const time = messageDate.toLocaleTimeString();
+                messageDiv.id = `msg-${message.id}`;
+                const time = new Date(message.timestamp).toLocaleTimeString();
                 const userColor = userColors[message.username] || '#000080';
                 let renderedText = escapeHtml(message.text);
                 const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -439,18 +488,27 @@
                     if (/\.(jpg|jpeg|png|gif)$/i.test(url)) return `<br><a href="${url}" target="_blank"><img src="${url}" alt="user image"></a>`;
                     return `<a href="${url}" target="_blank">${url}</a>`;
                 });
-                let actionsHtml = '';
-                if (message.username === currentUser) {
-                    const escapedTextForPrompt = message.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    actionsHtml = `<div class="message-actions">
-                        <span onclick="showEditPrompt('${message.id}', '${escapedTextForPrompt}')">edit</span>
-                        <span onclick="deleteMessage('${message.id}')">delete</span>
-                    </div>`;
+                
+                let replyHtml = '';
+                if (message.replyingTo) {
+                    const originalMsg = message.replyingTo;
+                    replyHtml = `<div class="message-reply-snippet" onclick="scrollToMessage('${originalMsg.id}')">Replying to <strong>${originalMsg.username}</strong>: ${escapeHtml(originalMsg.text)}</div>`;
                 }
+
+                let actionsHtml = `<span onclick="startReply('${message.id}')">reply</span>`;
+                if (message.username === currentUser) {
+                    const escapedText = message.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    actionsHtml += `<span onclick="showEditPrompt('${message.id}', '${escapedText}')">edit</span>`;
+                    actionsHtml += `<span onclick="deleteMessage('${message.id}')">delete</span>`;
+                }
+                if (pinnedIds.includes(message.id)) {
+                    actionsHtml += `<span onclick="unpinMessage('${message.id}')">unpin</span>`;
+                } else {
+                    actionsHtml += `<span onclick="pinMessage('${message.id}')">pin</span>`;
+                }
+
                 const editedTag = message.edited ? '<span class="edited-tag">(edited)</span>' : '';
-                messageDiv.innerHTML = `<span class="timestamp">[${time}]</span> 
-                    <span class="username" style="color: ${userColor};">${message.username}:</span> 
-                    ${renderedText} ${editedTag} ${actionsHtml}`;
+                messageDiv.innerHTML = `${replyHtml}<span class="timestamp">[${time}]</span> <span class="username" style="color: ${userColor};">${message.username}:</span> ${renderedText} ${editedTag} <div class="message-actions">${actionsHtml}</div>`;
                 chatMessagesEl.appendChild(messageDiv);
             });
             if (wasScrolledToBottom) chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
@@ -466,14 +524,14 @@
             }
             if (changed) await setStoredData('onlineUsers', onlineUsersData);
             if (currentUser && onlineUsersData[currentUser]) {
-                onlineUsersData[currentUser] = now;
+                onlineUsersData[currentUser] = Date.now();
                 await setStoredData('onlineUsers', onlineUsersData);
             }
             const usernames = Object.keys(onlineUsersData);
             onlineUsersList.innerHTML = usernames.length > 0 ? usernames.map(u => `<div class="user-item" onclick="showProfile('${u}')">${u}</div>`).join('') : 'none';
         }
         
-        function pollForUpdates() { if (currentUser) { loadMessages(); updateOnlineUsers(); } }
+        function pollForUpdates() { if (currentUser) { loadMessages(); updateOnlineUsers(); updatePinsButton(); } }
         function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
         
         async function updateUserColor() {
@@ -496,11 +554,14 @@
             currentTab = tabName;
             document.querySelectorAll('.dm-tab').forEach(tab => tab.classList.remove('active'));
             document.querySelector(`[onclick="switchToTab('${tabName}')"]`).classList.add('active');
-            const messageInput = document.getElementById('messageInput');
-            if (tabName === 'main') messageInput.placeholder = 'type your message...';
-            else if (tabName.startsWith('room-')) messageInput.placeholder = `message in ${tabName.replace('room-', '')}...`;
-            else messageInput.placeholder = `dm to ${tabName.split('-').find(u => u !== currentUser)}...`;
+            let title = 'main chat';
+            if(tabName.startsWith('room-')) title = `room: ${tabName.replace('room-', '')}`;
+            else if(tabName !== 'main') title = `dm: ${tabName.split('-').find(u => u !== currentUser)}`;
+            document.getElementById('channelTitle').textContent = title;
+            document.getElementById('messageInput').placeholder = `message in ${title}...`;
+            cancelReply();
             loadMessages();
+            updatePinsButton();
         }
         
         function updateDMTabs() {
@@ -605,6 +666,82 @@
         
         function showRules() { document.getElementById('rulesModalBackdrop').classList.remove('hidden'); }
         function closeRules() { document.getElementById('rulesModalBackdrop').classList.add('hidden'); }
+
+        function startReply(messageId) {
+            const message = currentMessages[messageId];
+            if (!message) return;
+            replyingTo = messageId;
+            const preview = document.getElementById('replyPreview');
+            preview.innerHTML = `Replying to <strong>${message.username}</strong>: <span class="reply-preview-text">${escapeHtml(message.text)}</span> <span class="cancel-reply" onclick="cancelReply()">X</span>`;
+            preview.classList.remove('hidden');
+            document.getElementById('messageInput').focus();
+        }
+
+        function cancelReply() {
+            replyingTo = null;
+            document.getElementById('replyPreview').classList.add('hidden');
+        }
+
+        function scrollToMessage(messageId) {
+            const msgEl = document.getElementById(`msg-${messageId}`);
+            if (msgEl) {
+                msgEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                msgEl.style.backgroundColor = 'rgba(255, 255, 0, 0.3)';
+                setTimeout(() => { msgEl.style.backgroundColor = ''; }, 1500);
+            }
+        }
+
+        async function updatePinsButton() {
+            const pinnedMessages = await getStoredData('pinnedMessages');
+            const pinnedIds = pinnedMessages[currentTab] || [];
+            document.getElementById('pinsBtn').textContent = `📌 pins (${pinnedIds.length})`;
+        }
+
+        async function showPins() {
+            const pinnedMessages = await getStoredData('pinnedMessages');
+            const pinnedIds = pinnedMessages[currentTab] || [];
+            const pinsList = document.getElementById('pinsList');
+            pinsList.innerHTML = '';
+
+            const allMsgs = { ...(await getStoredData('chatMessages')), ...Object.values(await getStoredData('dmMessages')).reduce((a, b) => ({...a, ...b}), {}), ...Object.values(await getStoredData('roomMessages')).reduce((a, b) => ({...a, ...b}), {}) };
+
+            if (pinnedIds.length === 0) {
+                pinsList.innerHTML = 'no messages have been pinned in this channel.';
+            } else {
+                pinnedIds.forEach(id => {
+                    const message = allMsgs[id];
+                    if (message) {
+                        const pinItem = document.createElement('div');
+                        pinItem.className = 'pinned-message-item';
+                        const time = new Date(message.timestamp).toLocaleString();
+                        pinItem.innerHTML = `
+                            <div class="pinned-info">
+                                <strong>${message.username}</strong> at ${time}
+                                <span class="message-actions" style="opacity:1"><span onclick="unpinMessage('${id}')">unpin</span></span>
+                            </div>
+                            <div class="pinned-text">${escapeHtml(message.text)}</div>
+                        `;
+                        pinsList.appendChild(pinItem);
+                    }
+                });
+            }
+            document.getElementById('pinsModalBackdrop').classList.remove('hidden');
+        }
+        
+        function closePins() { document.getElementById('pinsModalBackdrop').classList.add('hidden'); }
+
+        async function pinMessage(messageId) {
+            await fetch('/api/pinMessage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ channel: currentTab, messageId }) });
+            loadMessages();
+            updatePinsButton();
+        }
+
+        async function unpinMessage(messageId) {
+            await fetch('/api/unpinMessage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ channel: currentTab, messageId }) });
+            loadMessages();
+            updatePinsButton();
+            closePins();
+        }
     </script>
 </body>
 </html>
