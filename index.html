@@ -131,8 +131,8 @@
         body.geis-mode .status { color: #c8b6e6; }
         body.coen-mode .status { color: #27c2c9; }
         
+        .top-buttons { position: absolute; top: 20px; left: 20px; font-size: 11px; display: flex; gap: 5px; }
         .theme-switcher { position: absolute; top: 20px; right: 20px; font-size: 11px; }
-        .rules-btn-container { position: absolute; top: 20px; left: 20px; font-size: 11px; }
         .theme-btn { padding: 3px 8px; margin: 2px; font-size: 10px; }
         .hidden { display: none !important; }
         
@@ -143,8 +143,8 @@
         body.coen-mode .room-tab { background-color: #00666b; }
 
         .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .profile-modal, .rules-modal { background-color: #c0c0c0; border: 2px outset #c0c0c0; width: 400px; padding: 15px; }
-        .profile-modal h3, .rules-modal h3 { margin-top: 0; border-bottom: 2px inset #c0c0c0; padding-bottom: 5px; }
+        .profile-modal, .rules-modal, .pins-modal { background-color: #c0c0c0; border: 2px outset #c0c0c0; width: 400px; padding: 15px; }
+        .profile-modal h3, .rules-modal h3, .pins-modal h3 { margin-top: 0; border-bottom: 2px inset #c0c0c0; padding-bottom: 5px; }
         .profile-modal .profile-pic { max-width: 100px; max-height: 100px; border: 2px inset #c0c0c0; margin-right: 15px; float: left; }
         .profile-modal .profile-status { font-style: italic; margin: 10px 0; padding: 5px; background: white; border: 2px inset #c0c0c0; min-height: 20px; }
         .profile-modal .profile-song { margin-top: 10px; }
@@ -152,29 +152,62 @@
         .profile-modal .edit-fields input { width: 95%; }
         .rules-modal ol { padding-left: 20px; }
         .rules-modal li { margin-bottom: 10px; }
+        .pins-modal .pinned-message { border-bottom: 2px inset #c0c0c0; padding: 8px 0; }
+        .pins-modal .pinned-message:last-child { border-bottom: none; }
         
-        body.dark-mode .profile-modal, body.dark-mode .rules-modal { background-color: #404040; border-color: #555; color: #e0e0e0; }
+        body.dark-mode .profile-modal, body.dark-mode .rules-modal, body.dark-mode .pins-modal { background-color: #404040; border-color: #555; color: #e0e0e0; }
         body.dark-mode .profile-modal .profile-status { background-color: #333; border-color: #555; }
-        body.sage-mode .profile-modal, body.sage-mode .rules-modal { background-color: #5a6b68; border-color: #6b7c79; color: #e0f0f0; }
+        body.dark-mode .pins-modal .pinned-message { border-color: #555; }
+        body.sage-mode .profile-modal, body.sage-mode .rules-modal, body.sage-mode .pins-modal { background-color: #5a6b68; border-color: #6b7c79; color: #e0f0f0; }
         body.sage-mode .profile-modal .profile-status { background-color: #4a5b58; border-color: #6b7c79; }
-        body.geis-mode .profile-modal, body.geis-mode .rules-modal { background-color: #4d3d69; border-color: #3c3c3c; color: #f0e6ff; }
+        body.sage-mode .pins-modal .pinned-message { border-color: #6b7c79; }
+        body.geis-mode .profile-modal, body.geis-mode .rules-modal, body.geis-mode .pins-modal { background-color: #4d3d69; border-color: #3c3c3c; color: #f0e6ff; }
         body.geis-mode .profile-modal .profile-status { background-color: #3c354a; border-color: #3c3c3c; }
-        body.coen-mode .profile-modal, body.coen-mode .rules-modal { background-color: #005a5f; border-color: #003336; color: #e0ffff; }
+        body.geis-mode .pins-modal .pinned-message { border-color: #3c3c3c; }
+        body.coen-mode .profile-modal, body.coen-mode .rules-modal, body.coen-mode .pins-modal { background-color: #005a5f; border-color: #003336; color: #e0ffff; }
         body.coen-mode .profile-modal .profile-status { background-color: #003e42; border-color: #003336; }
+        body.coen-mode .pins-modal .pinned-message { border-color: #003336; }
 
         .chat-messages img { max-width: 200px; max-height: 200px; display: block; border: 2px inset #c0c0c0; margin-top: 5px; }
         .message-actions { display: inline-block; margin-left: 10px; font-size: 10px; opacity: 0; transition: opacity 0.2s ease; }
         .message:hover .message-actions { opacity: 1; }
-        .message-actions span { cursor: pointer; text-decoration: underline; color: #000080; }
+        .message-actions span { cursor: pointer; text-decoration: underline; color: #000080; margin: 0 3px; }
         body.dark-mode .message-actions span { color: #4da6ff; }
         body.geis-mode .message-actions span { color: #c8b6e6; }
         body.coen-mode .message-actions span { color: #27c2c9; }
         .edited-tag { font-size: 9px; color: #666; margin-left: 4px; }
+
+        #replyingToContainer {
+            border: 2px inset #c0c0c0;
+            padding: 5px;
+            font-size: 11px;
+            margin-bottom: 5px;
+            background-color: #e0e0e0;
+        }
+        body.dark-mode #replyingToContainer { background-color: #555; border-color: #555; }
+        body.sage-mode #replyingToContainer { background-color: #6b7c79; border-color: #6b7c79; }
+        body.geis-mode #replyingToContainer { background-color: #3c3c3c; border-color: #555; }
+        body.coen-mode #replyingToContainer { background-color: #3a6063; border-color: #2a4b4d; }
+
+        .reply-quote {
+            background-color: #f0f0f0;
+            border-left: 3px solid #b0b0b0;
+            padding: 4px 8px;
+            margin-bottom: 4px;
+            font-size: 11px;
+            opacity: 0.8;
+        }
+        body.dark-mode .reply-quote { background-color: #3a3a3a; border-color: #666; }
+        body.sage-mode .reply-quote { background-color: #50615e; border-color: #7c8d8a; }
+        body.geis-mode .reply-quote { background-color: #423a4f; border-color: #7a60a3; }
+        body.coen-mode .reply-quote { background-color: #004a4f; border-color: #27c2c9; }
+
     </style>
 </head>
 <body>
-    <div class="rules-btn-container">
+    <div class="top-buttons">
         <button class="theme-btn" onclick="showRules()">rules</button>
+        <button class="theme-btn" onclick="showPins()">pins</button>
     </div>
     <div class="theme-switcher">
         <button class="theme-btn" onclick="setTheme('light')">classic</button>
@@ -217,6 +250,7 @@
             <div class="chat-messages" id="chatMessages"></div>
             
             <div>
+                <div id="replyingToContainer" class="hidden"></div>
                 <input type="text" id="messageInput" placeholder="type your message..." style="width: 60%;">
                 <input type="color" id="colorPicker" value="#000080" onchange="updateUserColor()" title="pick your username color">
                 <button onclick="sendMessage()">send</button>
@@ -267,12 +301,21 @@
         </div>
     </div>
 
+    <div id="pinsModalBackdrop" class="modal-backdrop hidden">
+        <div class="pins-modal">
+            <h3>pinned messages</h3>
+            <div id="pinsList"></div>
+            <button onclick="closePins()">close</button>
+        </div>
+    </div>
+
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         let currentUser = null;
         let currentTab = 'main';
         let dmTabs = ['main'];
         let ytPlayer;
+        let replyingTo = null;
 
         function onYouTubeIframeAPIReady() {
             ytPlayer = new YT.Player('youtube-player', {
@@ -305,7 +348,6 @@
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
             const match = url.match(regExp);
             if (match && match[2].length === 11) return match[2];
-            // Also allow just pasting the ID
             if (url.length === 11) return url;
             return null;
         }
@@ -321,9 +363,9 @@
         
         window.onload = function() {
             if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
-            .then(() => console.log('service worker registered'))
-            .catch(err => console.log('service worker not registered', err));
+                navigator.serviceWorker.register('/sw.js')
+                    .then(() => console.log('service worker registered'))
+                    .catch(err => console.log('service worker not registered', err));
             }
             loadMessages();
             updateOnlineUsers();
@@ -401,7 +443,18 @@
             const messageText = messageInput.value.trim();
             if (!messageText) return;
             const messageId = Date.now() + Math.random();
-            const message = { id: messageId, username: currentUser, text: messageText, timestamp: new Date().toISOString(), channel: currentTab };
+            const message = { 
+                id: messageId, 
+                username: currentUser, 
+                text: messageText, 
+                timestamp: new Date().toISOString(), 
+                channel: currentTab 
+            };
+
+            if (replyingTo) {
+                message.replyTo = replyingTo;
+            }
+
             if (currentTab === 'main') {
                 const messages = await getStoredData('chatMessages');
                 messages[messageId] = message;
@@ -418,11 +471,13 @@
                 await setStoredData('dmMessages', dmMessages);
             }
             messageInput.value = '';
+            cancelReply();
             loadMessages();
         }
         
         async function loadMessages() {
             const userColors = await getStoredData('userColors');
+            const pinnedMessages = await getStoredData('pinnedMessages');
             const chatMessagesEl = document.getElementById('chatMessages');
             let messages;
             if (currentTab === 'main') messages = await getStoredData('chatMessages');
@@ -443,22 +498,36 @@
                 const messageDate = new Date(message.timestamp);
                 const time = messageDate.toLocaleTimeString();
                 const userColor = userColors[message.username] || '#000080';
+                
                 let renderedText = escapeHtml(message.text);
                 const urlRegex = /(https?:\/\/[^\s]+)/g;
                 renderedText = renderedText.replace(urlRegex, url => {
                     if (/\.(jpg|jpeg|png|gif)$/i.test(url)) return `<br><a href="${url}" target="_blank"><img src="${url}" alt="user image"></a>`;
                     return `<a href="${url}" target="_blank">${url}</a>`;
                 });
-                let actionsHtml = '';
-                if (message.username === currentUser) {
-                    const escapedTextForPrompt = message.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    actionsHtml = `<div class="message-actions">
-                        <span onclick="showEditPrompt('${message.id}', '${message.channel}', '${escapedTextForPrompt}')">edit</span>
-                        <span onclick="deleteMessage('${message.id}', '${message.channel}')">delete</span>
+
+                let replyHtml = '';
+                if (message.replyTo) {
+                    const repliedToText = escapeHtml(message.replyTo.text.length > 40 ? message.replyTo.text.substring(0, 40) + '...' : message.replyTo.text);
+                    replyHtml = `<div class="reply-quote">
+                        <strong>${message.replyTo.username}</strong>: ${repliedToText}
                     </div>`;
                 }
+
+                let actionsHtml = '';
+                const escapedTextForPrompt = message.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const escapedTextForReply = message.text.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ');
+                const pinText = pinnedMessages[message.id] ? 'unpin' : 'pin';
+
+                actionsHtml = `<div class="message-actions">
+                    ${message.username === currentUser ? `<span onclick="showEditPrompt('${message.id}', '${message.channel}', '${escapedTextForPrompt}')">edit</span>` : ''}
+                    ${message.username === currentUser ? `<span onclick="deleteMessage('${message.id}', '${message.channel}')">delete</span>` : ''}
+                    <span onclick="togglePin('${message.id}', '${message.channel}')">${pinText}</span>
+                    <span onclick="startReply('${message.id}', '${message.username}', '${escapedTextForReply}')">reply</span>
+                </div>`;
+
                 const editedTag = message.edited ? '<span class="edited-tag">(edited)</span>' : '';
-                messageDiv.innerHTML = `<span class="timestamp">[${time}]</span> 
+                messageDiv.innerHTML = `${replyHtml}<span class="timestamp">[${time}]</span> 
                     <span class="username" style="color: ${userColor};">${message.username}:</span> 
                     ${renderedText} ${editedTag} ${actionsHtml}`;
                 chatMessagesEl.appendChild(messageDiv);
@@ -597,13 +666,27 @@
             document.getElementById('profileModalBackdrop').classList.add('hidden');
         }
         
-        function showRules() {
-            document.getElementById('rulesModalBackdrop').classList.remove('hidden');
+        function showRules() { document.getElementById('rulesModalBackdrop').classList.remove('hidden'); }
+        function closeRules() { document.getElementById('rulesModalBackdrop').classList.add('hidden'); }
+        
+        async function showPins() {
+            const pins = await getStoredData('pinnedMessages');
+            const pinsList = document.getElementById('pinsList');
+            pinsList.innerHTML = '';
+            if (Object.keys(pins).length === 0) {
+                pinsList.textContent = 'no messages have been pinned yet.';
+            } else {
+                for (const id in pins) {
+                    const message = pins[id];
+                    const pinDiv = document.createElement('div');
+                    pinDiv.className = 'pinned-message';
+                    pinDiv.innerHTML = `<strong>${escapeHtml(message.username)}:</strong> ${escapeHtml(message.text)}`;
+                    pinsList.appendChild(pinDiv);
+                }
+            }
+            document.getElementById('pinsModalBackdrop').classList.remove('hidden');
         }
-
-        function closeRules() {
-            document.getElementById('rulesModalBackdrop').classList.add('hidden');
-        }
+        function closePins() { document.getElementById('pinsModalBackdrop').classList.add('hidden'); }
 
         async function saveProfile() {
             const profiles = await getStoredData('userProfiles');
@@ -630,7 +713,7 @@
             await fetch('/api/editMessage', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messageId, channel, newText, username: currentUser })
+                body: JSON.stringify({ messageId, channel, newText })
             });
             loadMessages();
         }
@@ -640,10 +723,35 @@
                 await fetch('/api/deleteMessage', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ messageId, channel, username: currentUser })
+                    body: JSON.stringify({ messageId, channel })
                 });
                 loadMessages();
             }
+        }
+
+        async function togglePin(messageId, channel) {
+            await fetch('/api/togglePin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messageId, channel })
+            });
+            loadMessages();
+        }
+
+        function startReply(messageId, username, text) {
+            replyingTo = { id: messageId, username, text };
+            const container = document.getElementById('replyingToContainer');
+            const shortText = text.length > 50 ? text.substring(0, 50) + '...' : text;
+            container.innerHTML = `replying to ${username}: "${shortText}" <span style="cursor:pointer; text-decoration:underline;" onclick="cancelReply()">cancel</span>`;
+            container.classList.remove('hidden');
+            document.getElementById('messageInput').focus();
+        }
+
+        function cancelReply() {
+            replyingTo = null;
+            const container = document.getElementById('replyingToContainer');
+            container.classList.add('hidden');
+            container.innerHTML = '';
         }
     </script>
 </body>
