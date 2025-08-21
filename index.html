@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>panthertalk v4.1</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <title>panthertalk v4.5</title>
     <link rel="manifest" href="/manifest.json">
     <style>
         body {
@@ -18,6 +17,7 @@
         body.dark-mode { background-color: #2d2d2d; }
         body.sage-mode { background-color: #4a5d5a; }
         body.geis-mode { background-color: #2c2538; }
+        body.coen-mode { background-color: #002a2c; }
         
         .container {
             max-width: 800px;
@@ -26,12 +26,14 @@
             border: 2px inset #c0c0c0;
             padding: 10px;
             transition: all 0.3s ease;
+            position: relative;
         }
         
         body.dark-mode .container { background-color: #404040; border: 2px inset #555; color: #e0e0e0; }
         body.sage-mode .container { background-color: #5a6b68; border: 2px inset #6b7c79; color: #e0f0f0; }
         body.geis-mode .container { background-color: #4d3d69; border: 2px inset #3c3c3c; color: #f0e6ff; }
-        
+        body.coen-mode .container { background-color: #004447; border: 2px inset #005f63; color: #d4ffff; }
+
         .login-form, .chat-interface { margin-bottom: 20px; }
         
         .chat-messages {
@@ -48,15 +50,17 @@
         body.dark-mode .chat-messages { background-color: #333; border: 2px inset #555; color: #e0e0e0; }
         body.sage-mode .chat-messages { background-color: #4a5b58; border: 2px inset #6b7c79; color: #e0f0f0; }
         body.geis-mode .chat-messages { background-color: #3c354a; border: 2px inset #3c3c3c; color: #f0e6ff; }
-        
-        .message { margin-bottom: 5px; word-wrap: break-word; }
+        body.coen-mode .chat-messages { background-color: #003336; border: 2px inset #005f63; color: #d4ffff; }
+
+        .message { margin-bottom: 5px; word-wrap: break-word; padding: 2px; }
         .timestamp { color: #666; font-size: 10px; }
         .username { font-weight: bold; color: #000080; }
         
         body.dark-mode .username { color: #4da6ff; }
         body.sage-mode .username { color: #279287; }
         body.geis-mode .username { color: #c8b6e6; }
-        
+        body.coen-mode .username { color: #00e0e7; }
+
         input[type="text"], input[type="password"] {
             border: 2px inset #c0c0c0; padding: 5px; font-family: 'Courier New', monospace; margin: 5px; background-color: white; color: black; transition: all 0.3s ease;
         }
@@ -64,6 +68,7 @@
         body.dark-mode input[type="text"], body.dark-mode input[type="password"] { background-color: #333; color: #e0e0e0; border: 2px inset #555; }
         body.sage-mode input[type="text"], body.sage-mode input[type="password"] { background-color: #4a5b58; color: #e0f0f0; border: 2px inset #6b7c79; }
         body.geis-mode input[type="text"], body.geis-mode input[type="password"] { background-color: #333; color: #f0e6ff; border: 2px inset #555; }
+        body.coen-mode input[type="text"], body.coen-mode input[type="password"] { background-color: #003336; color: #d4ffff; border: 2px inset #005f63; }
         
         button {
             background-color: #c0c0c0; border: 2px outset #c0c0c0; padding: 5px 15px; font-family: 'Courier New', monospace; cursor: pointer; margin: 5px; color: black; transition: all 0.3s ease;
@@ -72,12 +77,14 @@
         body.dark-mode button { background-color: #555; border: 2px outset #555; color: #e0e0e0; }
         body.sage-mode button { background-color: #6b7c79; border: 2px outset #6b7c79; color: #e0f0f0; }
         body.geis-mode button { background-color: #3c3c3c; border: 2px outset #555; color: #f0e6ff; }
+        body.coen-mode button { background-color: #005f63; border: 2px outset #007c81; color: #d4ffff; }
         
         button:active { border: 2px inset #c0c0c0; }
         body.dark-mode button:active { border: 2px inset #555; }
         body.sage-mode button:active { border: 2px inset #6b7c79; }
         body.geis-mode button:active { border: 2px inset #555; }
-        
+        body.coen-mode button:active { border: 2px inset #007c81; }
+
         .online-users {
             border: 2px inset #c0c0c0; background-color: white; padding: 10px; margin-bottom: 10px; font-size: 12px; min-height: 50px; transition: all 0.3s ease;
         }
@@ -85,39 +92,48 @@
         body.dark-mode .online-users { background-color: #333; border: 2px inset #555; color: #e0e0e0; }
         body.sage-mode .online-users { background-color: #4a5b58; border: 2px inset #6b7c79; color: #e0f0f0; }
         body.geis-mode .online-users { background-color: #3c354a; border: 2px inset #3c3c3c; color: #f0e6ff; }
-        
+        body.coen-mode .online-users { background-color: #003336; border: 2px inset #005f63; color: #d4ffff; }
+
         .user-item { cursor: pointer; padding: 2px 5px; margin: 2px 0; border: 1px solid transparent; }
         .user-item:hover { background-color: #000080; color: white; }
         body.dark-mode .user-item:hover { background-color: #4da6ff; color: #2d2d2d; }
         body.sage-mode .user-item:hover { background-color: #279287; color: #4a5d5a; }
         body.geis-mode .user-item:hover { background-color: #c8b6e6; color: #2c2538; }
+        body.coen-mode .user-item:hover { background-color: #00e0e7; color: #002a2c; }
         
         .dm-tabs { border-bottom: 2px inset #c0c0c0; margin-bottom: 10px; padding: 5px; transition: all 0.3s ease; }
         body.dark-mode .dm-tabs { border-bottom: 2px inset #555; }
         body.sage-mode .dm-tabs { border-bottom: 2px inset #6b7c79; }
         body.geis-mode .dm-tabs { border-bottom: 2px inset #3c3c3c; }
+        body.coen-mode .dm-tabs { border-bottom: 2px inset #005f63; }
         
         .dm-tab { background-color: #c0c0c0; border: 2px outset #c0c0c0; padding: 3px 10px; margin-right: 5px; cursor: pointer; display: inline-block; font-size: 11px; color: black; transition: all 0.3s ease; }
         body.dark-mode .dm-tab { background-color: #555; border: 2px outset #555; color: #e0e0e0; }
         body.sage-mode .dm-tab { background-color: #6b7c79; border: 2px outset #6b7c79; color: #e0f0f0; }
         body.geis-mode .dm-tab { background-color: #3c3c3c; border: 2px outset #555; color: #f0e6ff; }
+        body.coen-mode .dm-tab { background-color: #005f63; border: 2px outset #007c81; color: #d4ffff; }
         
         .dm-tab.active { border: 2px inset #c0c0c0; background-color: white; color: black; }
         body.dark-mode .dm-tab.active { border: 2px inset #555; background-color: #333; color: #e0e0e0; }
         body.sage-mode .dm-tab.active { border: 2px inset #6b7c79; background-color: #4a5b58; color: #e0f0f0; }
         body.geis-mode .dm-tab.active { background-color: #9881c2; border: 2px inset #7a60a3; color: #2c2538; }
+        body.coen-mode .dm-tab.active { background-color: #003336; border: 2px inset #005f63; color: #d4ffff; }
         
         .dm-tab:hover:not(.active) { background-color: #d0d0d0; }
         body.dark-mode .dm-tab:hover:not(.active) { background-color: #666; }
         body.sage-mode .dm-tab:hover:not(.active) { background-color: #7c8d8a; }
         body.geis-mode .dm-tab:hover:not(.active) { background-color: #666; }
-        
+        body.coen-mode .dm-tab:hover:not(.active) { background-color: #007c81; }
+
         .status { color: #008000; font-size: 11px; margin-bottom: 10px; }
         body.dark-mode .status { color: #4da6ff; }
         body.sage-mode .status { color: #34c2b3; }
         body.geis-mode .status { color: #c8b6e6; }
+        body.coen-mode .status { color: #00e0e7; }
         
-        .theme-switcher { position: absolute; top: 20px; right: 20px; font-size: 11px; }
+        .header-buttons { position: absolute; top: 20px; width: 100%; max-width: 800px; }
+        .theme-switcher { position: absolute; top: 0; right: 0; font-size: 11px; }
+        .rules-btn-container { position: absolute; top: 0; left: 0; font-size: 11px; }
         .theme-btn { padding: 3px 8px; margin: 2px; font-size: 10px; }
         .hidden { display: none !important; }
         
@@ -125,42 +141,76 @@
         body.dark-mode .room-tab { background-color: #4da6ff; }
         body.sage-mode .room-tab { background-color: #40e0d0; }
         body.geis-mode .room-tab { background-color: #6a5093; }
+        body.coen-mode .room-tab { background-color: #007c81; }
 
         .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .profile-modal { background-color: #c0c0c0; border: 2px outset #c0c0c0; width: 400px; padding: 15px; }
-        .profile-modal h3 { margin-top: 0; border-bottom: 2px inset #c0c0c0; padding-bottom: 5px; }
+        .profile-modal, .rules-modal, .pins-modal { background-color: #c0c0c0; border: 2px outset #c0c0c0; width: 400px; padding: 15px; }
+        .profile-modal h3, .rules-modal h3, .pins-modal h3 { margin-top: 0; border-bottom: 2px inset #c0c0c0; padding-bottom: 5px; }
         .profile-modal .profile-pic { max-width: 100px; max-height: 100px; border: 2px inset #c0c0c0; margin-right: 15px; float: left; }
         .profile-modal .profile-status { font-style: italic; margin: 10px 0; padding: 5px; background: white; border: 2px inset #c0c0c0; min-height: 20px; }
         .profile-modal .profile-song { margin-top: 10px; }
         .profile-modal .edit-fields { margin-top: 15px; border-top: 2px inset #c0c0c0; padding-top: 10px; }
         .profile-modal .edit-fields input { width: 95%; }
         
-        body.dark-mode .profile-modal { background-color: #404040; border-color: #555; color: #e0e0e0; }
-        body.dark-mode .profile-modal .profile-status { background-color: #333; border-color: #555; }
-        body.sage-mode .profile-modal { background-color: #5a6b68; border-color: #6b7c79; color: #e0f0f0; }
-        body.sage-mode .profile-modal .profile-status { background-color: #4a5b58; border-color: #6b7c79; }
-        body.geis-mode .profile-modal { background-color: #4d3d69; border-color: #3c3c3c; color: #f0e6ff; }
-        body.geis-mode .profile-modal .profile-status { background-color: #3c354a; border-color: #3c3c3c; }
+        .rules-modal ol { padding-left: 20px; }
+        .rules-modal li { margin-bottom: 10px; }
 
+        body.dark-mode .profile-modal, body.dark-mode .rules-modal, body.dark-mode .pins-modal { background-color: #404040; border-color: #555; color: #e0e0e0; }
+        body.dark-mode .profile-modal .profile-status { background-color: #333; border-color: #555; }
+        body.sage-mode .profile-modal, body.sage-mode .rules-modal, body.sage-mode .pins-modal { background-color: #5a6b68; border-color: #6b7c79; color: #e0f0f0; }
+        body.sage-mode .profile-modal .profile-status { background-color: #4a5b58; border-color: #6b7c79; }
+        body.geis-mode .profile-modal, body.geis-mode .rules-modal, body.geis-mode .pins-modal { background-color: #4d3d69; border-color: #3c3c3c; color: #f0e6ff; }
+        body.geis-mode .profile-modal .profile-status { background-color: #3c354a; border-color: #3c3c3c; }
+        body.coen-mode .profile-modal, body.coen-mode .rules-modal, body.coen-mode .pins-modal { background-color: #004447; border-color: #005f63; color: #d4ffff; }
+        body.coen-mode .profile-modal .profile-status { background-color: #003336; border-color: #005f63; }
+        
         .chat-messages img { max-width: 200px; max-height: 200px; display: block; border: 2px inset #c0c0c0; margin-top: 5px; }
         .message-actions { display: inline-block; margin-left: 10px; font-size: 10px; opacity: 0; transition: opacity 0.2s ease; }
         .message:hover .message-actions { opacity: 1; }
-        .message-actions span { cursor: pointer; text-decoration: underline; color: #000080; }
+        .message-actions span { cursor: pointer; text-decoration: underline; margin-right: 5px; color: #000080; }
         body.dark-mode .message-actions span { color: #4da6ff; }
         body.geis-mode .message-actions span { color: #c8b6e6; }
+        body.coen-mode .message-actions span { color: #00e0e7; }
         .edited-tag { font-size: 9px; color: #666; margin-left: 4px; }
+        
+        .reply-preview { background: #e0e0e0; border: 2px inset #c0c0c0; padding: 5px; margin-bottom: 5px; font-size: 11px; }
+        body.dark-mode .reply-preview { background-color: #505050; border-color: #555; }
+        body.geis-mode .reply-preview { background-color: #5d4d79; border-color: #3c3c3c; }
+        body.coen-mode .reply-preview { background-color: #005f63; border-color: #007c81; }
+        .reply-preview-text { font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; max-width: 80%; }
+        .cancel-reply { float: right; cursor: pointer; font-weight: bold; }
+
+        .message-reply-snippet { font-size: 10px; color: #666; border-left: 2px solid #ccc; padding-left: 8px; margin-bottom: 4px; cursor: pointer; }
+        .message-reply-snippet:hover { border-left-color: #000080; }
+        
+        .channel-header { display: flex; justify-content: space-between; align-items: center; padding: 0 5px; margin-bottom: 5px; }
+        .pins-btn { padding: 3px 8px; font-size: 10px; }
+        .pins-modal .pinned-message-item { border-bottom: 2px inset #c0c0c0; padding: 8px; margin-bottom: 8px; }
+        .pins-modal .pinned-message-item:last-child { border-bottom: none; margin-bottom: 0; }
+        .pins-modal .pinned-info { font-size: 10px; color: #666; margin-bottom: 4px; }
+        .pins-modal .pinned-text { font-size: 12px; }
+        body.dark-mode .pins-modal .pinned-message-item { border-color: #555; }
+        body.sage-mode .pins-modal .pinned-message-item { border-color: #6b7c79; }
+        body.geis-mode .pins-modal .pinned-message-item { border-color: #3c3c3c; }
+        body.coen-mode .pins-modal .pinned-message-item { border-color: #005f63; }
     </style>
 </head>
 <body>
-    <div class="theme-switcher">
-        <button class="theme-btn" onclick="setTheme('light')">classic</button>
-        <button class="theme-btn" onclick="setTheme('dark')">dark</button>
-        <button class="theme-btn" onclick="setTheme('sage')">sage</button>
-        <button class="theme-btn" onclick="setTheme('geis')">geis</button> 
+    <div class="header-buttons">
+        <div class="rules-btn-container">
+            <button class="theme-btn" onclick="showRules()">rules</button>
+        </div>
+        <div class="theme-switcher">
+            <button class="theme-btn" onclick="setTheme('light')">classic</button>
+            <button class="theme-btn" onclick="setTheme('dark')">dark</button>
+            <button class="theme-btn" onclick="setTheme('sage')">sage</button>
+            <button class="theme-btn" onclick="setTheme('geis')">geis</button>
+            <button class="theme-btn" onclick="setTheme('coen')">coen</button>
+        </div>
     </div>
     
-    <div class="container">
-        <h2>panthertalk v4.1</h2>
+    <div class="container" style="padding-top: 40px;">
+        <h2>panthertalk v4.5</h2>
         
         <div id="loginForm" class="login-form">
             <div>username: <input type="text" id="usernameInput" placeholder="enter username"></div>
@@ -171,12 +221,10 @@
         
         <div id="chatInterface" class="chat-interface hidden">
             <div class="status" id="userStatus"></div>
-            
             <div class="online-users">
                 <strong>online users (click to view profile):</strong>
                 <div id="onlineUsersList"></div>
             </div>
-            
             <div class="online-users">
                 <strong>chat rooms:</strong>
                 <div>
@@ -184,13 +232,19 @@
                     <button onclick="joinOrCreateRoom()" style="margin: 2px; padding: 3px 8px; font-size: 11px;">join</button>
                 </div>
             </div>
-            
             <div class="dm-tabs" id="dmTabs">
                 <div class="dm-tab active" onclick="switchToTab('main')">main chat</div>
             </div>
             
+            <div class="channel-header">
+                <span id="channelTitle" style="font-weight: bold;">main chat</span>
+                <button id="pinsBtn" class="pins-btn" onclick="showPins()">📌 pins (0)</button>
+            </div>
+            
             <div class="chat-messages" id="chatMessages"></div>
             
+            <div id="replyPreview" class="reply-preview hidden"></div>
+
             <div>
                 <input type="text" id="messageInput" placeholder="type your message..." style="width: 60%;">
                 <input type="color" id="colorPicker" value="#000080" onchange="updateUserColor()" title="pick your username color">
@@ -204,20 +258,16 @@
         <div class="profile-modal">
             <h3 id="profileUsername"></h3>
             <img id="profilePic" class="profile-pic" src="" alt="profile picture">
-            
             <strong>status:</strong>
             <div id="profileStatus" class="profile-status"></div>
-
             <div id="profileSongContainer" class="profile-song">
                 <button id="playPauseBtn" class="hidden" onclick="toggleSongPlayback()">play song</button>
                 <div id="youtube-player" style="position: absolute; top: -9999px; left: -9999px;"></div>
             </div>
-            
             <div style="clear:both; margin-top: 15px;">
                  <button id="profileDmBtn" onclick="">send dm</button>
                  <button onclick="closeProfile()">close</button>
             </div>
-
             <div id="profileEditFields" class="edit-fields hidden">
                 <h4>edit your profile</h4>
                 <div>image url: <input type="text" id="editPicUrl"></div>
@@ -228,37 +278,53 @@
         </div>
     </div>
 
+    <div id="rulesModalBackdrop" class="modal-backdrop hidden">
+        <div class="rules-modal">
+            <h3>rules</h3>
+            <ol>
+                <li>do not say slurs. homophobia, racism, sexism, etc. is not welcome here.</li>
+                <li>please try to limit uses of curse words.</li>
+                <li>do not send inappropriate gifs, links or images.</li>
+                <li>no spam/chat flooding.</li>
+                <li>DO NOT share this with others! this will allow us to operate on a smaller scale and avoiding instantly being blocked.</li>
+            </ol>
+            <button onclick="closeRules()">close</button>
+        </div>
+    </div>
+
+    <div id="pinsModalBackdrop" class="modal-backdrop hidden">
+        <div class="rules-modal pins-modal">
+            <h3>pinned messages</h3>
+            <div id="pinsList" style="max-height: 400px; overflow-y: auto; min-height: 50px;"></div>
+            <button onclick="closePins()">close</button>
+        </div>
+    </div>
+
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         let currentUser = null;
         let currentTab = 'main';
         let dmTabs = ['main'];
         let ytPlayer;
+        let replyingTo = null;
+        let allMessages = {};
 
         function onYouTubeIframeAPIReady() {
             ytPlayer = new YT.Player('youtube-player', {
-                height: '0', width: '0',
-                events: { 'onStateChange': onPlayerStateChange }
+                height: '0', width: '0', events: { 'onStateChange': onPlayerStateChange }
             });
         }
 
         function onPlayerStateChange(event) {
-            const playPauseBtn = document.getElementById('playPauseBtn');
-            if (event.data === YT.PlayerState.PLAYING) {
-                playPauseBtn.textContent = 'pause song';
-            } else {
-                playPauseBtn.textContent = 'play song';
-            }
+            const btn = document.getElementById('playPauseBtn');
+            btn.textContent = event.data === YT.PlayerState.PLAYING ? 'pause song' : 'play song';
         }
         
         function toggleSongPlayback() {
             if (!ytPlayer || typeof ytPlayer.getPlayerState !== 'function') return;
-            const playerState = ytPlayer.getPlayerState();
-            if (playerState === YT.PlayerState.PLAYING) {
-                ytPlayer.pauseVideo();
-            } else {
-                ytPlayer.playVideo();
-            }
+            const state = ytPlayer.getPlayerState();
+            if (state === YT.PlayerState.PLAYING) ytPlayer.pauseVideo();
+            else ytPlayer.playVideo();
         }
 
         function extractYouTubeID(url) {
@@ -266,28 +332,24 @@
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
             const match = url.match(regExp);
             if (match && match[2].length === 11) return match[2];
-            // Also allow just pasting the ID
             if (url.length === 11) return url;
             return null;
         }
 
         function setTheme(theme) {
-            document.body.classList.remove('dark-mode', 'sage-mode', 'geis-mode');
-            if (theme === 'dark') document.body.classList.add('dark-mode');
-            else if (theme === 'sage') document.body.classList.add('sage-mode');
-            else if (theme === 'geis') document.body.classList.add('geis-mode');
+            document.body.classList.remove('dark-mode', 'sage-mode', 'geis-mode', 'coen-mode');
+            if (theme) document.body.classList.add(`${theme}-mode`);
             if (currentUser) updateDMTabs();
         }
         
         window.onload = function() {
             if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
-            .then(() => console.log('service worker registered'))
-            .catch(err => console.log('service worker not registered', err));
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('sw not registered', err));
             }
             loadMessages();
             updateOnlineUsers();
             updateDMTabs();
+            updatePinsButton();
             setInterval(pollForUpdates, 1000);
         };
         
@@ -300,11 +362,7 @@
         
         async function setStoredData(key, data) {
             try {
-                await fetch(`/api/data/${key}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
+                await fetch(`/api/data/${key}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
             } catch (error) { console.error('error saving data:', error); }
         }
         
@@ -331,8 +389,7 @@
             currentUser = actualUsername;
             onlineUsers[actualUsername] = Date.now();
             await setStoredData('onlineUsers', onlineUsers);
-            const savedColor = userColors[actualUsername] || '#000080';
-            document.getElementById('colorPicker').value = savedColor;
+            document.getElementById('colorPicker').value = userColors[actualUsername] || '#000080';
             document.getElementById('loginForm').classList.add('hidden');
             document.getElementById('chatInterface').classList.remove('hidden');
             document.getElementById('userStatus').textContent = `logged in as: ${actualUsername}`;
@@ -350,9 +407,6 @@
             }
             document.getElementById('loginForm').classList.remove('hidden');
             document.getElementById('chatInterface').classList.add('hidden');
-            document.getElementById('usernameInput').value = '';
-            document.getElementById('passwordInput').value = '';
-            document.getElementById('loginStatus').innerHTML = '';
         }
         
         async function sendMessage() {
@@ -360,10 +414,11 @@
             const messageInput = document.getElementById('messageInput');
             const messageText = messageInput.value.trim();
             if (!messageText) return;
-            const messageId = Date.now() + Math.random();
-            const message = { id: messageId, username: currentUser, text: messageText, timestamp: new Date().toISOString(), channel: currentTab };
+            const messageId = (Date.now() + Math.random()).toString();
+            const message = { id: messageId, username: currentUser, text: messageText, timestamp: new Date().toISOString(), channel: currentTab, replyingTo: replyingTo };
+            let messages;
             if (currentTab === 'main') {
-                const messages = await getStoredData('chatMessages');
+                messages = await getStoredData('chatMessages');
                 messages[messageId] = message;
                 await setStoredData('chatMessages', messages);
             } else if (currentTab.startsWith('room-')) {
@@ -378,30 +433,35 @@
                 await setStoredData('dmMessages', dmMessages);
             }
             messageInput.value = '';
+            cancelReply();
             loadMessages();
         }
         
         async function loadMessages() {
             const userColors = await getStoredData('userColors');
             const chatMessagesEl = document.getElementById('chatMessages');
+            const mainChat = await getStoredData('chatMessages');
+            const dms = await getStoredData('dmMessages');
+            const rooms = await getStoredData('roomMessages');
+            
+            allMessages = { ...mainChat, ...Object.values(dms).reduce((a, b) => ({...a, ...b}), {}), ...Object.values(rooms).reduce((a, b) => ({...a, ...b}), {}) };
             let messages;
-            if (currentTab === 'main') messages = await getStoredData('chatMessages');
-            else if (currentTab.startsWith('room-')) {
-                const roomMessages = await getStoredData('roomMessages');
-                messages = roomMessages[currentTab] || {};
-            } else {
-                const dmMessages = await getStoredData('dmMessages');
-                messages = dmMessages[currentTab] || {};
-            }
+            if (currentTab === 'main') messages = mainChat;
+            else if (currentTab.startsWith('room-')) messages = rooms[currentTab] || {};
+            else messages = dms[currentTab] || {};
+
             const messageArray = Object.values(messages).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
             const recentMessages = messageArray.slice(-100);
             const wasScrolledToBottom = chatMessagesEl.scrollHeight - chatMessagesEl.clientHeight <= chatMessagesEl.scrollTop + 1;
             chatMessagesEl.innerHTML = '';
+            const pinnedMessages = await getStoredData('pinnedMessages');
+            const pinnedIds = pinnedMessages[currentTab] || [];
+
             recentMessages.forEach(message => {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = 'message';
-                const messageDate = new Date(message.timestamp);
-                const time = messageDate.toLocaleTimeString();
+                messageDiv.id = `msg-${message.id}`;
+                const time = new Date(message.timestamp).toLocaleTimeString();
                 const userColor = userColors[message.username] || '#000080';
                 let renderedText = escapeHtml(message.text);
                 const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -409,18 +469,24 @@
                     if (/\.(jpg|jpeg|png|gif)$/i.test(url)) return `<br><a href="${url}" target="_blank"><img src="${url}" alt="user image"></a>`;
                     return `<a href="${url}" target="_blank">${url}</a>`;
                 });
-                let actionsHtml = '';
+                let replyHtml = '';
+                if (message.replyingTo && allMessages[message.replyingTo]) {
+                    const originalMsg = allMessages[message.replyingTo];
+                    replyHtml = `<div class="message-reply-snippet" onclick="scrollToMessage('${originalMsg.id}')">Replying to <strong>${originalMsg.username}</strong>: ${escapeHtml(originalMsg.text)}</div>`;
+                }
+                let actionsHtml = `<span onclick="startReply('${message.id}')">reply</span>`;
                 if (message.username === currentUser) {
-                    const escapedTextForPrompt = message.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    actionsHtml = `<div class="message-actions">
-                        <span onclick="showEditPrompt('${message.id}', '${message.channel}', '${escapedTextForPrompt}')">edit</span>
-                        <span onclick="deleteMessage('${message.id}', '${message.channel}')">delete</span>
-                    </div>`;
+                    const escapedText = message.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    actionsHtml += `<span onclick="showEditPrompt('${message.id}', '${escapedText}')">edit</span>`;
+                    actionsHtml += `<span onclick="deleteMessage('${message.id}')">delete</span>`;
+                }
+                if (pinnedIds.includes(message.id)) {
+                    actionsHtml += `<span onclick="unpinMessage('${message.id}')">unpin</span>`;
+                } else {
+                    actionsHtml += `<span onclick="pinMessage('${message.id}')">pin</span>`;
                 }
                 const editedTag = message.edited ? '<span class="edited-tag">(edited)</span>' : '';
-                messageDiv.innerHTML = `<span class="timestamp">[${time}]</span> 
-                    <span class="username" style="color: ${userColor};">${message.username}:</span> 
-                    ${renderedText} ${editedTag} ${actionsHtml}`;
+                messageDiv.innerHTML = `${replyHtml}<span class="timestamp">[${time}]</span> <span class="username" style="color: ${userColor};">${message.username}:</span> ${renderedText} ${editedTag} <div class="message-actions">${actionsHtml}</div>`;
                 chatMessagesEl.appendChild(messageDiv);
             });
             if (wasScrolledToBottom) chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
@@ -436,23 +502,20 @@
             }
             if (changed) await setStoredData('onlineUsers', onlineUsersData);
             if (currentUser && onlineUsersData[currentUser]) {
-                onlineUsersData[currentUser] = now;
+                onlineUsersData[currentUser] = Date.now();
                 await setStoredData('onlineUsers', onlineUsersData);
             }
             const usernames = Object.keys(onlineUsersData);
-            if (usernames.length > 0) {
-                onlineUsersList.innerHTML = usernames.map(username => `<div class="user-item" onclick="showProfile('${username}')">${username}</div>`).join('');
-            } else { onlineUsersList.textContent = 'none'; }
+            onlineUsersList.innerHTML = usernames.length > 0 ? usernames.map(u => `<div class="user-item" onclick="showProfile('${u}')">${u}</div>`).join('') : 'none';
         }
         
-        function pollForUpdates() { if (currentUser) { loadMessages(); updateOnlineUsers(); } }
+        function pollForUpdates() { if (currentUser) { loadMessages(); updateOnlineUsers(); updatePinsButton(); } }
         function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
         
         async function updateUserColor() {
             if (!currentUser) return;
-            const colorPicker = document.getElementById('colorPicker');
             const userColors = await getStoredData('userColors');
-            userColors[currentUser] = colorPicker.value;
+            userColors[currentUser] = document.getElementById('colorPicker').value;
             await setStoredData('userColors', userColors);
             loadMessages();
         }
@@ -468,13 +531,14 @@
         function switchToTab(tabName) {
             currentTab = tabName;
             document.querySelectorAll('.dm-tab').forEach(tab => tab.classList.remove('active'));
-            const activeTab = document.querySelector(`[onclick="switchToTab('${tabName}')"]`);
-            if (activeTab) activeTab.classList.add('active');
-            const messageInput = document.getElementById('messageInput');
-            if (tabName === 'main') messageInput.placeholder = 'type your message...';
-            else if (tabName.startsWith('room-')) messageInput.placeholder = `message in ${tabName.replace('room-', '')}...`;
-            else messageInput.placeholder = `dm to ${tabName.split('-').find(u => u !== currentUser)}...`;
+            document.querySelector(`[onclick="switchToTab('${tabName}')"]`).classList.add('active');
+            let title = 'main chat';
+            if(tabName.startsWith('room-')) title = `room: ${tabName.replace('room-', '')}`;
+            else if(tabName !== 'main') title = `dm: ${tabName.split('-').find(u => u !== currentUser)}`;
+            document.getElementById('channelTitle').textContent = title;
+            document.getElementById('messageInput').placeholder = `message in ${title}...`;
             loadMessages();
+            updatePinsButton();
         }
         
         function updateDMTabs() {
@@ -526,76 +590,131 @@
             profilePic.src = userProfile.picUrl || 'https://i.imgur.com/6b6Xq8B.png';
             profilePic.onerror = () => { profilePic.src = 'https://i.imgur.com/6b6Xq8B.png'; };
             document.getElementById('profileStatus').textContent = userProfile.status || '(no status set)';
-            
             const playPauseBtn = document.getElementById('playPauseBtn');
             const songId = userProfile.songId;
-
             if (ytPlayer && songId) {
                 ytPlayer.loadVideoById(songId);
                 ytPlayer.pauseVideo();
                 playPauseBtn.classList.remove('hidden');
-            } else {
-                playPauseBtn.classList.add('hidden');
-            }
-
+            } else { playPauseBtn.classList.add('hidden'); }
             document.getElementById('profileDmBtn').onclick = () => { startDM(username); closeProfile(); };
             if (username === currentUser) {
                 document.getElementById('profileEditFields').classList.remove('hidden');
                 document.getElementById('editPicUrl').value = userProfile.picUrl || '';
                 document.getElementById('editSongUrl').value = userProfile.songUrl || '';
                 document.getElementById('editStatus').value = userProfile.status || '';
-            } else {
-                document.getElementById('profileEditFields').classList.add('hidden');
-            }
+            } else { document.getElementById('profileEditFields').classList.add('hidden'); }
             document.getElementById('profileModalBackdrop').classList.remove('hidden');
         }
 
         function closeProfile() {
-            if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
-                ytPlayer.stopVideo();
-            }
+            if (ytPlayer && typeof ytPlayer.stopVideo === 'function') ytPlayer.stopVideo();
             document.getElementById('profileModalBackdrop').classList.add('hidden');
         }
 
         async function saveProfile() {
             const profiles = await getStoredData('userProfiles');
             const songUrl = document.getElementById('editSongUrl').value.trim();
-            
             profiles[currentUser] = {
-                picUrl: document.getElementById('editPicUrl').value.trim(),
-                songUrl: songUrl,
-                songId: extractYouTubeID(songUrl),
-                status: document.getElementById('editStatus').value.trim()
+                picUrl: document.getElementById('editPicUrl').value.trim(), songUrl, songId: extractYouTubeID(songUrl), status: document.getElementById('editStatus').value.trim()
             };
             await setStoredData('userProfiles', profiles);
             closeProfile();
         }
         
-        function showEditPrompt(messageId, channel, currentText) {
+        function showEditPrompt(messageId, currentText) {
             const newText = prompt("edit your message:", currentText.replace(/ \(edited\)$/, ''));
-            if (newText !== null && newText.trim() !== "" && newText.trim() !== currentText) {
-                editMessage(messageId, channel, newText.trim());
+            if (newText && newText.trim() !== "" && newText.trim() !== currentText) {
+                editMessage(messageId, newText.trim());
             }
         }
 
-        async function editMessage(messageId, channel, newText) {
-            await fetch('/api/editMessage', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messageId, channel, newText, username: currentUser })
-            });
+        async function editMessage(messageId, newText) {
+            await fetch('/api/editMessage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messageId, channel: currentTab, newText, username: currentUser }) });
             loadMessages();
         }
 
-        async function deleteMessage(messageId, channel) {
+        async function deleteMessage(messageId) {
             if (confirm("are you sure you want to delete this message?")) {
-                await fetch('/api/deleteMessage', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ messageId, channel, username: currentUser })
-                });
+                await fetch('/api/deleteMessage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messageId, channel: currentTab, username: currentUser }) });
                 loadMessages();
             }
+        }
+
+        function showRules() { document.getElementById('rulesModalBackdrop').classList.remove('hidden'); }
+        function closeRules() { document.getElementById('rulesModalBackdrop').classList.add('hidden'); }
+
+        function startReply(messageId) {
+            const message = allMessages[messageId];
+            if (!message) return;
+            replyingTo = messageId;
+            const preview = document.getElementById('replyPreview');
+            preview.innerHTML = `Replying to <strong>${message.username}</strong>: <span class="reply-preview-text">${escapeHtml(message.text)}</span> <span class="cancel-reply" onclick="cancelReply()">X</span>`;
+            preview.classList.remove('hidden');
+            document.getElementById('messageInput').focus();
+        }
+
+        function cancelReply() {
+            replyingTo = null;
+            document.getElementById('replyPreview').classList.add('hidden');
+        }
+
+        function scrollToMessage(messageId) {
+            const msgEl = document.getElementById(`msg-${messageId}`);
+            if (msgEl) {
+                msgEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                msgEl.style.backgroundColor = 'rgba(255, 255, 0, 0.3)';
+                setTimeout(() => { msgEl.style.backgroundColor = ''; }, 1500);
+            }
+        }
+
+        async function updatePinsButton() {
+            const pinnedMessages = await getStoredData('pinnedMessages');
+            const pinnedIds = pinnedMessages[currentTab] || [];
+            document.getElementById('pinsBtn').textContent = `📌 pins (${pinnedIds.length})`;
+        }
+
+        async function showPins() {
+            const pinnedMessages = await getStoredData('pinnedMessages');
+            const pinnedIds = pinnedMessages[currentTab] || [];
+            const pinsList = document.getElementById('pinsList');
+            pinsList.innerHTML = '';
+            if (pinnedIds.length === 0) {
+                pinsList.innerHTML = 'no messages have been pinned in this channel.';
+            } else {
+                pinnedIds.forEach(id => {
+                    const message = allMessages[id];
+                    if (message) {
+                        const pinItem = document.createElement('div');
+                        pinItem.className = 'pinned-message-item';
+                        const time = new Date(message.timestamp).toLocaleString();
+                        pinItem.innerHTML = `
+                            <div class="pinned-info">
+                                <strong>${message.username}</strong> at ${time}
+                                <span class="message-actions" style="opacity:1"><span onclick="unpinMessage('${id}')">unpin</span></span>
+                            </div>
+                            <div class="pinned-text">${escapeHtml(message.text)}</div>
+                        `;
+                        pinsList.appendChild(pinItem);
+                    }
+                });
+            }
+            document.getElementById('pinsModalBackdrop').classList.remove('hidden');
+        }
+        
+        function closePins() { document.getElementById('pinsModalBackdrop').classList.add('hidden'); }
+
+        async function pinMessage(messageId) {
+            await fetch('/api/pinMessage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ channel: currentTab, messageId }) });
+            loadMessages();
+            updatePinsButton();
+        }
+
+        async function unpinMessage(messageId) {
+            await fetch('/api/unpinMessage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ channel: currentTab, messageId }) });
+            loadMessages();
+            updatePinsButton();
+            closePins(); // Also close the modal if unpinning from there
         }
     </script>
 </body>
