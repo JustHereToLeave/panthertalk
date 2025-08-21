@@ -456,66 +456,78 @@
         }
         
         async function loadMessages() {
-            const userColors = await getStoredData('userColors');
-            const chatMessagesEl = document.getElementById('chatMessages');
-            let messages;
-            if (currentTab === 'main') messages = await getStoredData('chatMessages');
-            else if (currentTab.startsWith('room-')) {
-                const roomMessages = await getStoredData('roomMessages');
-                messages = roomMessages[currentTab] || {};
-            } else {
-                const dmMessages = await getStoredData('dmMessages');
-                messages = dmMessages[currentTab] || {};
-            }
-            currentMessages = messages; 
-            
-            const messageArray = Object.values(messages).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-            const recentMessages = messageArray.slice(-100);
-            const wasScrolledToBottom = chatMessagesEl.scrollHeight - chatMessagesEl.clientHeight <= chatMessagesEl.scrollTop + 1;
-            chatMessagesEl.innerHTML = '';
-            const pinnedMessages = await getStoredData('pinnedMessages');
-            const pinnedIds = pinnedMessages[currentTab] || [];
+    const userColors = await getStoredData('userColors');
+    const chatMessagesEl = document.getElementById('chatMessages');
+    let messages;
+    if (currentTab === 'main') messages = await getStoredData('chatMessages');
+    else if (currentTab.startsWith('room-')) {
+        const roomMessages = await getStoredData('roomMessages');
+        messages = roomMessages[currentTab] || {};
+    } else {
+        const dmMessages = await getStoredData('dmMessages');
+        messages = dmMessages[currentTab] || {};
+    }
+    currentMessages = messages; // Update the local cache for replies
+    
+    const messageArray = Object.values(messages).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    const recentMessages = messageArray.slice(-100);
+    const wasScrolledToBottom = chatMessagesEl.scrollHeight - chatMessagesEl.clientHeight <= chatMessagesEl.scrollTop + 1;
+    chatMessagesEl.innerHTML = '';
+    const pinnedMessages = await getStoredData('pinnedMessages');
+    const pinnedIds = pinnedMessages[currentTab] || [];
 
-            recentMessages.forEach(message => {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'message';
-                messageDiv.id = `msg-${message.id}`;
-                const time = new Date(message.timestamp).toLocaleTimeString();
-                const userColor = userColors[message.username] || '#000080';
-                let renderedText = escapeHtml(message.text);
-                const urlRegex = /(https?:\/\/[^\s]+)/g;
-                renderedText = renderedText.replace(urlRegex, url => {
-                    if (/\.(jpg|jpeg|png|gif)$/i.test(url)) return `<br><a href="${url}" target="_blank"><img src="${url}" alt="user image"></a>`;
-                    return `<a href="${url}" target="_blank">${url}</a>`;
-                });
-                
-                let replyHtml = '';
-                if (message.replyingTo) {
-                    const originalMsg = message.replyingTo;
-                    replyHtml = `<div class="message-reply-snippet" onclick="scrollToMessage('${originalMsg.id}')">Replying to <strong>${originalMsg.username}</strong>: ${escapeHtml(originalMsg.text)}</div>`;
-                }
-
-                let actionsHtml = '';
-                if (message.username !== currentUser) {
-                     actionsHtml += `<span onclick="startReply('${message.id}')">reply</span>`;
-                }
-                if (message.username === currentUser) {
-                    const escapedText = message.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    actionsHtml += `<span onclick="showEditPrompt('${message.id}', '${escapedText}')">edit</span>`;
-                    actionsHtml += `<span onclick="deleteMessage('${message.id}')">delete</span>`;
-                }
-                if (pinnedIds.includes(message.id)) {
-                    actionsHtml += `<span onclick="unpinMessage('${message.id}')">unpin</span>`;
-                } else {
-                    actionsHtml += `<span onclick="pinMessage('${message.id}')">pin</span>`;
-                }
-
-                const editedTag = message.edited ? '<span class="edited-tag">(edited)</span>' : '';
-                messageDiv.innerHTML = `${replyHtml}<span class="timestamp">[${time}]</span> <span class="username" style="color: ${userColor};">${message.username}:</span> ${renderedText} ${editedTag} <div class="message-actions">${actionsHtml}</div>`;
-                chatMessagesEl.appendChild(messageDiv);
-            });
-            if (wasScrolledToBottom) chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+    recentMessages.forEach(message => {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message';
+        messageDiv.id = `msg-${message.id}`;
+        const time = new Date(message.timestamp).toLocaleTimeString();
+        const userColor = userColors[message.username] || '#000080';
+        let renderedText = escapeHtml(message.text);
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        renderedText = renderedText.replace(urlRegex, url => {
+            if (/\.(jpg|jpeg|png|gif)$/i.test(url)) return `<br><a href="${url}" target="_blank"><img src="${url}" alt="user image"></a>`;
+            return `<a href="${url}" target="_blank">${url}</a>`;
+        });
+        
+        let replyHtml = '';
+        if (message.replyingTo) {
+            const originalMsg = message.replyingTo;
+            replyHtml = `<div class="message-reply-snippet" onclick="scrollToMessage('${originalMsg.id}')">Replying to <strong>${originalMsg.username}</strong>: ${escapeHtml(originalMsg.text)}</div>`;
         }
+
+        // --- CORRECTED LOGIC ---
+        let actionsHtml = '';
+        if (message.username !== currentUser) {
+            actionsHtml += `<span onclick="startReply('${message.id}')">reply</span>`;
+        }
+        if (message.username === currentUser) {
+            const escapedText = message.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            actionsHtml += `<span onclick="showEditPrompt('${message.id}', '${escapedText}')">edit</span>`;
+            actionsHtml += `<span onclick="deleteMessage('${message.id}')">delete</span>`;
+        }
+        if (pinnedIds.includes(message.id)) {
+            actionsHtml += `<span onclick="unpinMessage('${message.id}')">unpin</span>`;
+        } else {
+            actionsHtml += `<span onclick="pinMessage('${message.id}')">pin</span>`;
+        }
+        // --- END CORRECTION ---
+
+        const editedTag = message.edited ? '<span class="edited-tag">(edited)</span>' : '';
+        messageDiv.innerHTML = `
+            ${replyHtml}
+            <span class="timestamp">[${time}]</span> 
+            <span class="username" style="color: ${userColor};">${message.username}:</span> 
+            ${renderedText} 
+            ${editedTag}
+            <div class="message-actions">${actionsHtml}</div>`;
+        
+        chatMessagesEl.appendChild(messageDiv);
+    });
+
+    if (wasScrolledToBottom) {
+        chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+    }
+}
 
         async function updateOnlineUsers() {
             const onlineUsersData = await getStoredData('onlineUsers');
