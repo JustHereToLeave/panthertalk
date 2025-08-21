@@ -14,7 +14,8 @@ let userColors = {};
 let chatRooms = {};
 let roomMessages = {};
 let userProfiles = {};
-let pinnedMessages = {}; // new data store for pinned messages
+// updated data store for channel-specific pinned messages
+let pinnedMessages = {}; 
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
@@ -40,7 +41,7 @@ app.post('/api/data/:key', (req, res) => {
         case 'chatRooms': chatRooms = data; break;
         case 'roomMessages': roomMessages = data; break;
         case 'userProfiles': userProfiles = data; break;
-        case 'pinnedMessages': pinnedMessages = data; break; // handle pinned messages
+        case 'pinnedMessages': pinnedMessages = data; break;
     }
     res.json({ success: true });
 });
@@ -59,12 +60,12 @@ app.post('/api/editMessage', (req, res) => {
 
     if (messageLog && messageLog[messageId]) {
         messageLog[messageId].text = newText;
-        messageLog[messageId].edited = true; // mark as edited
+        messageLog[messageId].edited = true;
         
-        // also update in pinned messages if it exists there
-        if (pinnedMessages[messageId]) {
-            pinnedMessages[messageId].text = newText;
-            pinnedMessages[messageId].edited = true;
+        // also update in channel-specific pinned messages if it exists there
+        if (pinnedMessages[channel] && pinnedMessages[channel][messageId]) {
+            pinnedMessages[channel][messageId].text = newText;
+            pinnedMessages[channel][messageId].edited = true;
         }
 
         res.json({ success: true });
@@ -87,9 +88,9 @@ app.post('/api/deleteMessage', (req, res) => {
 
     if (messageLog && messageLog[messageId]) {
         delete messageLog[messageId];
-        // also delete from pinned messages
-        if (pinnedMessages[messageId]) {
-            delete pinnedMessages[messageId];
+        // also delete from channel-specific pinned messages
+        if (pinnedMessages[channel] && pinnedMessages[channel][messageId]) {
+            delete pinnedMessages[channel][messageId];
         }
         res.json({ success: true });
     } else {
@@ -97,13 +98,18 @@ app.post('/api/deleteMessage', (req, res) => {
     }
 });
 
-// new endpoint for pinning/unpinning messages
+// updated endpoint for pinning/unpinning messages by channel
 app.post('/api/togglePin', (req, res) => {
     const { messageId, channel } = req.body;
     
-    if (pinnedMessages[messageId]) {
-        // if already pinned, unpin it
-        delete pinnedMessages[messageId];
+    // ensure the channel exists in the pinnedMessages object
+    if (!pinnedMessages[channel]) {
+        pinnedMessages[channel] = {};
+    }
+
+    if (pinnedMessages[channel][messageId]) {
+        // if already pinned in this channel, unpin it
+        delete pinnedMessages[channel][messageId];
         res.json({ success: true, pinned: false });
     } else {
         // if not pinned, find the original message and pin it
@@ -113,7 +119,7 @@ app.post('/api/togglePin', (req, res) => {
         else messageLog = dmMessages[channel];
 
         if (messageLog && messageLog[messageId]) {
-            pinnedMessages[messageId] = messageLog[messageId];
+            pinnedMessages[channel][messageId] = messageLog[messageId];
             res.json({ success: true, pinned: true });
         } else {
             res.status(404).json({ success: false, message: 'message not found' });
