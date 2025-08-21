@@ -1,5 +1,5 @@
 // Define a unique cache name. Change this string to force an update.
-const staticCacheName = 'panthertalk-static-v4.6';
+const staticCacheName = 'panthertalk-static-v4.5';
 
 // Add the files you want to cache to this array
 const assetsToCache = [
