@@ -207,7 +207,7 @@
 <body>
     <div class="top-buttons">
         <button class="theme-btn" onclick="showRules()">rules</button>
-        <button class="theme-btn" onclick="showPins()">pins</button>
+        <button id="pinsBtn" class="theme-btn hidden" onclick="showPins()">pins</button>
     </div>
     <div class="theme-switcher">
         <button class="theme-btn" onclick="setTheme('light')">classic</button>
@@ -417,6 +417,7 @@
             document.getElementById('colorPicker').value = savedColor;
             document.getElementById('loginForm').classList.add('hidden');
             document.getElementById('chatInterface').classList.remove('hidden');
+            document.getElementById('pinsBtn').classList.remove('hidden');
             document.getElementById('userStatus').textContent = `logged in as: ${actualUsername}`;
             loadMessages();
             updateOnlineUsers();
@@ -432,6 +433,7 @@
             }
             document.getElementById('loginForm').classList.remove('hidden');
             document.getElementById('chatInterface').classList.add('hidden');
+            document.getElementById('pinsBtn').classList.add('hidden');
             document.getElementById('usernameInput').value = '';
             document.getElementById('passwordInput').value = '';
             document.getElementById('loginStatus').innerHTML = '';
@@ -478,18 +480,12 @@
         function formatMessage(text) {
             let formattedText = escapeHtml(text);
             
-            // a helper regex to match content that isn't surrounded by whitespace
             const contentRegex = `([^\\s*~_][^\\*~_]*[^\\s*~_]|[^\\s*~_])`;
 
-            // bold and italics: ***text***
             formattedText = formattedText.replace(new RegExp(`\\*\\*\\*${contentRegex}\\*\\*\\*`, 'g'), '<strong><em>$1</em></strong>');
-            // bold: **text**
             formattedText = formattedText.replace(new RegExp(`\\*\\*${contentRegex}\\*\\*`, 'g'), '<strong>$1</strong>');
-            // italics: *text*
             formattedText = formattedText.replace(new RegExp(`\\*${contentRegex}\\*`, 'g'), '<em>$1</em>');
-            // underline: __text__
             formattedText = formattedText.replace(new RegExp(`__${contentRegex}__`, 'g'), '<u>$1</u>');
-            // strikethrough: ~~text~~
             formattedText = formattedText.replace(new RegExp(`~~${contentRegex}~~`, 'g'), '<del>$1</del>');
             
             return formattedText;
@@ -537,7 +533,8 @@
                 let actionsHtml = '';
                 const escapedTextForPrompt = message.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                 const escapedTextForReply = message.text.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ');
-                const pinText = pinnedMessages[message.id] ? 'unpin' : 'pin';
+                const isPinned = pinnedMessages[currentTab] && pinnedMessages[currentTab][message.id];
+                const pinText = isPinned ? 'unpin' : 'pin';
 
                 actionsHtml = `<div class="message-actions">
                     ${message.username === currentUser ? `<span onclick="showEditPrompt('${message.id}', '${message.channel}', '${escapedTextForPrompt}')">edit</span>` : ''}
@@ -691,13 +688,14 @@
         
         async function showPins() {
             const pins = await getStoredData('pinnedMessages');
+            const channelPins = pins[currentTab] || {};
             const pinsList = document.getElementById('pinsList');
             pinsList.innerHTML = '';
-            if (Object.keys(pins).length === 0) {
-                pinsList.textContent = 'no messages have been pinned yet.';
+            if (Object.keys(channelPins).length === 0) {
+                pinsList.textContent = 'no messages have been pinned in this channel yet.';
             } else {
-                for (const id in pins) {
-                    const message = pins[id];
+                for (const id in channelPins) {
+                    const message = channelPins[id];
                     const pinDiv = document.createElement('div');
                     pinDiv.className = 'pinned-message';
                     pinDiv.innerHTML = `<strong>${escapeHtml(message.username)}:</strong> ${formatMessage(message.text)}`;
