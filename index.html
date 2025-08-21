@@ -467,7 +467,7 @@
                 const dmMessages = await getStoredData('dmMessages');
                 messages = dmMessages[currentTab] || {};
             }
-            currentMessages = messages; // Update the local cache
+            currentMessages = messages; 
             
             const messageArray = Object.values(messages).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
             const recentMessages = messageArray.slice(-100);
@@ -495,7 +495,10 @@
                     replyHtml = `<div class="message-reply-snippet" onclick="scrollToMessage('${originalMsg.id}')">Replying to <strong>${originalMsg.username}</strong>: ${escapeHtml(originalMsg.text)}</div>`;
                 }
 
-                let actionsHtml = `<span onclick="startReply('${message.id}')">reply</span>`;
+                let actionsHtml = '';
+                if (message.username !== currentUser) {
+                     actionsHtml += `<span onclick="startReply('${message.id}')">reply</span>`;
+                }
                 if (message.username === currentUser) {
                     const escapedText = message.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                     actionsHtml += `<span onclick="showEditPrompt('${message.id}', '${escapedText}')">edit</span>`;
@@ -702,7 +705,7 @@
             const pinnedIds = pinnedMessages[currentTab] || [];
             const pinsList = document.getElementById('pinsList');
             pinsList.innerHTML = '';
-
+            
             const allMsgs = { ...(await getStoredData('chatMessages')), ...Object.values(await getStoredData('dmMessages')).reduce((a, b) => ({...a, ...b}), {}), ...Object.values(await getStoredData('roomMessages')).reduce((a, b) => ({...a, ...b}), {}) };
 
             if (pinnedIds.length === 0) {
@@ -740,7 +743,9 @@
             await fetch('/api/unpinMessage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ channel: currentTab, messageId }) });
             loadMessages();
             updatePinsButton();
-            closePins();
+            if (document.getElementById('pinsModalBackdrop').classList.contains('hidden') === false) {
+                showPins(); // Refresh the pins modal if it's open
+            }
         }
     </script>
 </body>
