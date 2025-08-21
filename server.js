@@ -15,7 +15,6 @@ let userColors = {};
 let chatRooms = {};
 let roomMessages = {};
 let userProfiles = {};
-// MODIFIED: Pinned messages now stores an array of IDs per channel
 let pinnedMessages = {}; 
 
 // serve your html file at the root
@@ -85,25 +84,22 @@ app.post('/api/deleteMessage', (req, res) => {
     }
 });
 
-// --- MODIFIED: Endpoint for Pinning a Message ---
+// Endpoint for Pinning a Message
 app.post('/api/pinMessage', (req, res) => {
     const { channel, messageId } = req.body;
-    // If the channel doesn't have an array yet, create one
     if (!Array.isArray(pinnedMessages[channel])) {
         pinnedMessages[channel] = [];
     }
-    // Add the message ID if it's not already there
     if (!pinnedMessages[channel].includes(messageId)) {
         pinnedMessages[channel].push(messageId);
     }
     res.json({ success: true });
 });
 
-// --- MODIFIED: Endpoint for Unpinning a Message ---
+// Endpoint for Unpinning a Message
 app.post('/api/unpinMessage', (req, res) => {
     const { channel, messageId } = req.body;
     if (Array.isArray(pinnedMessages[channel])) {
-        // Filter out the message ID to remove it
         pinnedMessages[channel] = pinnedMessages[channel].filter(id => id !== messageId);
     }
     res.json({ success: true });
