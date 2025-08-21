@@ -474,6 +474,26 @@
             cancelReply();
             loadMessages();
         }
+
+        function formatMessage(text) {
+            let formattedText = escapeHtml(text);
+            
+            // a helper regex to match content that isn't surrounded by whitespace
+            const contentRegex = `([^\\s*~_][^\\*~_]*[^\\s*~_]|[^\\s*~_])`;
+
+            // bold and italics: ***text***
+            formattedText = formattedText.replace(new RegExp(`\\*\\*\\*${contentRegex}\\*\\*\\*`, 'g'), '<strong><em>$1</em></strong>');
+            // bold: **text**
+            formattedText = formattedText.replace(new RegExp(`\\*\\*${contentRegex}\\*\\*`, 'g'), '<strong>$1</strong>');
+            // italics: *text*
+            formattedText = formattedText.replace(new RegExp(`\\*${contentRegex}\\*`, 'g'), '<em>$1</em>');
+            // underline: __text__
+            formattedText = formattedText.replace(new RegExp(`__${contentRegex}__`, 'g'), '<u>$1</u>');
+            // strikethrough: ~~text~~
+            formattedText = formattedText.replace(new RegExp(`~~${contentRegex}~~`, 'g'), '<del>$1</del>');
+            
+            return formattedText;
+        }
         
         async function loadMessages() {
             const userColors = await getStoredData('userColors');
@@ -499,7 +519,7 @@
                 const time = messageDate.toLocaleTimeString();
                 const userColor = userColors[message.username] || '#000080';
                 
-                let renderedText = escapeHtml(message.text);
+                let renderedText = formatMessage(message.text);
                 const urlRegex = /(https?:\/\/[^\s]+)/g;
                 renderedText = renderedText.replace(urlRegex, url => {
                     if (/\.(jpg|jpeg|png|gif)$/i.test(url)) return `<br><a href="${url}" target="_blank"><img src="${url}" alt="user image"></a>`;
@@ -680,7 +700,7 @@
                     const message = pins[id];
                     const pinDiv = document.createElement('div');
                     pinDiv.className = 'pinned-message';
-                    pinDiv.innerHTML = `<strong>${escapeHtml(message.username)}:</strong> ${escapeHtml(message.text)}`;
+                    pinDiv.innerHTML = `<strong>${escapeHtml(message.username)}:</strong> ${formatMessage(message.text)}`;
                     pinsList.appendChild(pinDiv);
                 }
             }
