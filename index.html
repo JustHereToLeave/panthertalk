@@ -202,6 +202,39 @@
         body.geis-mode .reply-quote { background-color: #423a4f; border-color: #7a60a3; }
         body.coen-mode .reply-quote { background-color: #004a4f; border-color: #27c2c9; }
 
+        /* mobile responsiveness */
+        @media (max-width: 600px) {
+            body {
+                padding: 5px;
+            }
+            .container {
+                padding: 5px;
+            }
+            .top-buttons, .theme-switcher {
+                position: static;
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 10px;
+                flex-wrap: wrap;
+            }
+            .theme-switcher {
+                justify-content: flex-end;
+            }
+            .chat-messages {
+                height: 60vh; /* take more vertical space */
+            }
+            #messageInput {
+                width: 95% !important;
+                margin-bottom: 5px;
+            }
+            .message-actions {
+                opacity: 1; /* always show actions on mobile */
+            }
+            .profile-modal, .rules-modal, .pins-modal {
+                width: 90%;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -395,30 +428,36 @@
             const password = document.getElementById('passwordInput').value;
             const loginStatus = document.getElementById('loginStatus');
             if (!username || !password) { loginStatus.innerHTML = '<span style="color: red;">please enter both username and password</span>'; return; }
+            
             const users = await getStoredData('chatUsers');
             const onlineUsers = await getStoredData('onlineUsers');
             const userColors = await getStoredData('userColors');
-            const usernameLower = username.toLowerCase();
-            let actualUsername = username;
-            for (const existingUser in users) {
-                if (existingUser.toLowerCase() === usernameLower) { actualUsername = existingUser; break; }
-            }
-            if (users[actualUsername]) {
-                if (users[actualUsername] !== password) { loginStatus.innerHTML = '<span style="color: red;">incorrect password</span>'; return; }
-                if (onlineUsers[actualUsername]) { loginStatus.innerHTML = '<span style="color: red;">user already logged in</span>'; return; }
+
+            // case-sensitive check
+            if (users[username]) {
+                if (users[username] !== password) {
+                    loginStatus.innerHTML = '<span style="color: red;">incorrect password</span>';
+                    return;
+                }
+                if (onlineUsers[username]) {
+                    loginStatus.innerHTML = '<span style="color: red;">user already logged in</span>';
+                    return;
+                }
             } else {
-                users[actualUsername] = password;
+                // register new user with the exact case
+                users[username] = password;
                 await setStoredData('chatUsers', users);
             }
-            currentUser = actualUsername;
-            onlineUsers[actualUsername] = Date.now();
+            
+            currentUser = username;
+            onlineUsers[currentUser] = Date.now();
             await setStoredData('onlineUsers', onlineUsers);
-            const savedColor = userColors[actualUsername] || '#000080';
+            const savedColor = userColors[currentUser] || '#000080';
             document.getElementById('colorPicker').value = savedColor;
             document.getElementById('loginForm').classList.add('hidden');
             document.getElementById('chatInterface').classList.remove('hidden');
             document.getElementById('pinsBtn').classList.remove('hidden');
-            document.getElementById('userStatus').textContent = `logged in as: ${actualUsername}`;
+            document.getElementById('userStatus').textContent = `logged in as: ${currentUser}`;
             loadMessages();
             updateOnlineUsers();
             document.getElementById('messageInput').focus();
