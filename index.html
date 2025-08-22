@@ -54,7 +54,11 @@
         
         .message { margin-bottom: 5px; word-wrap: break-word; }
         .timestamp { color: #666; font-size: 10px; }
-        .username { font-weight: bold; color: #000080; }
+        .username { 
+            font-weight: bold; 
+            color: #000080;
+            cursor: pointer;
+        }
         
         body.dark-mode .username { color: #4da6ff; }
         body.sage-mode .username { color: #279287; }
@@ -574,17 +578,18 @@
                 const escapedTextForReply = message.text.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ');
                 const isPinned = pinnedMessages[currentTab] && pinnedMessages[currentTab][message.id];
                 const pinText = isPinned ? 'unpin' : 'pin';
+                const escapedUsername = message.username.replace(/'/g, "\\'");
 
                 actionsHtml = `<div class="message-actions">
                     ${message.username === currentUser ? `<span onclick="showEditPrompt('${message.id}', '${message.channel}', '${escapedTextForPrompt}')">edit</span>` : ''}
                     ${message.username === currentUser ? `<span onclick="deleteMessage('${message.id}', '${message.channel}')">delete</span>` : ''}
                     <span onclick="togglePin('${message.id}', '${message.channel}')">${pinText}</span>
-                    <span onclick="startReply('${message.id}', '${message.username}', '${escapedTextForReply}')">reply</span>
+                    <span onclick="startReply('${message.id}', '${escapedUsername}', '${escapedTextForReply}')">reply</span>
                 </div>`;
 
                 const editedTag = message.edited ? '<span class="edited-tag">(edited)</span>' : '';
                 messageDiv.innerHTML = `${replyHtml}<span class="timestamp">[${time}]</span> 
-                    <span class="username" style="color: ${userColor};">${message.username}:</span> 
+                    <span class="username" style="color: ${userColor};" onclick="showProfile('${escapedUsername}')">${escapeHtml(message.username)}:</span> 
                     ${renderedText} ${editedTag} ${actionsHtml}`;
                 chatMessagesEl.appendChild(messageDiv);
             });
