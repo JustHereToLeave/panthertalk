@@ -15,9 +15,11 @@ const redis = new Redis({
 const STORE_KEY = 'panthertalk_store'; // everything is saved under this one key
 
 // Default shape used if nothing has been saved yet (first run ever)
+// NOTE: onlineUsers is intentionally NOT in here — presence data changes every
+// second per open tab and doesn't need to survive a restart, so it's kept in
+// a separate purely in-memory object below and never touches Redis.
 let store = {
     chatUsers: {},
-    onlineUsers: {},
     chatMessages: {},
     dmMessages: {},
     userColors: {},
@@ -26,6 +28,10 @@ let store = {
     userProfiles: {},
     pinnedMessages: {}
 };
+
+// Ephemeral, in-memory only — never saved to Upstash, resets on restart (fine,
+// since every connected client re-announces itself within ~1 second anyway).
+let onlineUsers = {};
 
 // Load saved data from Upstash on startup (if any exists)
 async function loadData() {
@@ -64,12 +70,24 @@ app.get('/', (req, res) => {
 
 app.get('/api/data/:key', (req, res) => {
     const key = req.params.key;
+    if (key === 'onlineUsers') {
+        res.json(onlineUsers);
+        return;
+    }
     res.json(store[key] || {});
 });
 
 app.post('/api/data/:key', (req, res) => {
     const key = req.params.key;
     const data = req.body;
+
+    if (key === 'onlineUsers') {
+        // heartbeat data — keep in memory only, never persisted to Redis
+        onlineUsers = data;
+        res.json({ success: true });
+        return;
+    }
+
     if (Object.prototype.hasOwnProperty.call(store, key)) {
         store[key] = data;
         saveData();
