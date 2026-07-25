@@ -561,7 +561,7 @@
                 let renderedText = formatMessage(message.text);
                 const urlRegex = /(https?:\/\/[^\s]+)/g;
                 renderedText = renderedText.replace(urlRegex, url => {
-                    if (/\.(jpg|jpeg|png|gif)$/i.test(url)) return `<br><a href="${url}" target="_blank"><img src="${url}" alt="user image"></a>`;
+                    if (/\.(jpg|jpeg|png|gif|webp)$/i.test(url)) return `<br><a href="${url}" target="_blank"><img src="${url}" alt="user image"></a>`;
                     return `<a href="${url}" target="_blank">${url}</a>`;
                 });
 
